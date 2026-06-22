@@ -1,0 +1,377 @@
+# ===============================================================
+# 评论通用配置 - Comments Common Configuration
+# ===============================================================
+comments:
+  # 多个评论系统启用时，选择一个默认展示风格
+  # 可选值：tabs 【仅选项卡】 | dropdown 【仅下拉菜单】 | both 【同时支持，右上角切换】
+  # Available values: tabs | dropdown | both
+  style: tabs
+
+  # 选择一个默认显示的评论系统
+  # 可选值：utterances | gitalk | giscus | twikoo | gitment | waline
+  # Available values: utterances | gitalk | giscus | twikoo | gitment | waline
+  active: utterances
+
+  # 是否懒加载评论系统
+  # Lazyload all comment systems
+  # Available values: true | false
+  lazyload: true
+
+  # 是否记住用户选择的评论系统
+  # Remember user's comment system choice
+  # Available values: true | false
+  storage: true
+
+  # 导航配置（可选，用于自定义展示文本和顺序）
+  # Navigation configuration (optional, for custom display text and order)
+  nav:
+    utterances:
+      text: Utterances
+      order: 1
+    gitalk:
+      text: Gitalk
+      order: 2
+    giscus:
+      text: Giscus
+      order: 3
+    twikoo:
+      text: Twikoo
+      order: 4
+    gitment:
+      text: Gitment
+      order: 5
+    waline:
+      text: Waline
+      order: 6
+
+# ===============================================================
+# 各评论系统配置 - Comment System Configurations
+# 注意：以下配置为默认模板，实际使用时请替换为您的真实配置
+# Note: The following are default templates, replace with your actual config
+# ===============================================================
+
+# ---------------------------------------------------------------
+# Utterances - 基于 GitHub Issues 的轻量评论系统
+# For more information: https://utteranc.es
+# ---------------------------------------------------------------
+utterances:
+  # 是否启用
+  # Available values: true | false
+  enable: true
+
+  # 是否显示加载提示
+  # Available values: true | false
+  loading: true
+
+  # GitHub 仓库（格式：owner/repo-name）
+  # Github repository (format: owner/repo-name)
+  repo: user-name/repo-name
+
+  # Issue 匹配规则
+  # Available values: pathname | url | title | og:title | issue number | specific term
+  issue_term: pathname
+
+  # 浅色主题
+  # Available values: github-light | github-dark | preferred-color-scheme | github-dark-orange | icy-dark | dark-blue | photon-dark | boxy-light
+  theme: github-light
+
+  # 深色主题
+  # Dark theme
+  dark: github-dark
+
+# ---------------------------------------------------------------
+# Gitalk - 基于 GitHub Issue 和 Preact 开发的现代评论插件
+# For more information: https://gitalk.github.io
+# ---------------------------------------------------------------
+gitalk:
+  # 是否启用
+  # Available values: true | false
+  enable: true
+
+  # 是否显示加载提示
+  # Available values: true | false
+  loading: true
+
+  # GitHub 仓库所有者
+  # GitHub repo owner
+  github_id: user-name
+
+  # 用于存储评论 issues 的 GitHub 仓库名
+  # Repository name to store issues
+  repo: repo-name
+
+  # GitHub OAuth App Client ID
+  # GitHub Application Client ID
+  client_id: your-client-id
+
+  # GitHub OAuth App Client Secret
+  # GitHub Application Client Secret
+  client_secret: your-client-secret
+
+  # GitHub 仓库所有者和协作者，只有这些人可以初始化 issues
+  # GitHub repo owner and collaborators
+  admin_user:
+
+  # 类似 Facebook 的免打扰模式
+  # Facebook-like distraction free mode
+  distraction_free_mode: true
+
+  # OAuth 代理地址（解决跨域问题）
+  # OAuth proxy address
+  proxy: https://huazie-oauth.netlify.app/api/auth
+
+  # Issue 匹配规则
+  # Available values: pathname | url | title | issue number
+  issue_term: pathname
+
+  # 显示语言（可选，不填则跟随浏览器）
+  # Available values: en | es-ES | fr | ru | zh-CN | zh-TW
+  language:
+
+# ---------------------------------------------------------------
+# Giscus - 利用 GitHub Discussions 实现的评论系统
+# For more information: https://giscus.app/
+# ---------------------------------------------------------------
+giscus:
+  # 是否启用
+  # Available values: true | false
+  enable: true
+
+  # 是否显示加载提示
+  # Available values: true | false
+  loading: true
+
+  # GitHub 仓库名称
+  # Github repository name
+  repo: your-username/your-repo-name
+
+  # GitHub 仓库 ID（从 giscus.app 获取或调用 API）
+  # Github repository id
+  repo_id: xxx
+
+  # Discussion 分类名称
+  # Github discussion category
+  category:
+
+  # Discussion 分类 ID
+  # Github discussion category id
+  category_id:
+
+  # Discussion 匹配规则
+  # Available values: pathname | url | title | og:title | specific
+  mapping: pathname
+
+  # 当 mapping 为 specific 时需配置
+  # Required when mapping is specific
+  term:
+
+  # 是否启用严格匹配
+  # Available values: 0 | 1
+  strict: 0
+
+  # 是否启用反应功能
+  # Available values: 0 | 1
+  reactions_enabled: 1
+
+  # 是否输出 discussion 元数据
+  # Available values: 0 | 1
+  emit_metadata: 0
+
+  # 浅色主题
+  # Available values: light | dark | preferred_color_scheme | transparent_dark | etc.
+  theme: light
+
+  # 深色主题
+  # Dark theme
+  dark: dark
+
+  # 界面语言
+  # Available values: zh-CN | zh-TW | en | es-ES | fr | ru
+  lang:
+
+  # 评论输入框位置
+  # Available values: top | bottom
+  input_position: bottom
+
+  # 懒加载
+  # Available values: lazy | eager
+  data_loading: lazy
+
+# ---------------------------------------------------------------
+# Twikoo - 简洁、安全、免费的静态网站评论系统
+# For more information: https://twikoo.js.org
+# ---------------------------------------------------------------
+twikoo:
+  # 是否启用
+  # Available values: true | false
+  enable: true
+
+  # 是否显示加载提示
+  # Available values: true | false
+  loading: true
+
+  # Twikoo 环境 ID（必填）
+  # Twikoo environment ID (required)
+  env_id: xxx
+
+  # 环境地域（腾讯云环境用，Vercel 不填）
+  # Environment region (for Tencent CloudBase)
+  region:
+
+  # 页面路径（默认使用 location.pathname）
+  # Page path
+  path:
+
+  # 评论区语言
+  # Available values: zh-CN | en | etc.
+  lang: zh-CN
+
+  # Twikoo JS SDK URL
+  # Twikoo JS SDK URL
+  js: https://cdn.jsdelivr.net/npm/twikoo@1.7.9/dist/twikoo.min.js
+
+# ---------------------------------------------------------------
+# Gitment - 基于 GitHub Issues 的评论系统
+# For more information: https://github.com/imsun/gitment
+# ---------------------------------------------------------------
+gitment:
+  # 是否启用
+  # Available values: true | false
+  enable: true
+
+  # 是否显示加载提示
+  # Available values: true | false
+  loading: true
+
+  # GitHub 仓库所有者
+  # GitHub repo owner
+  owner: user-name
+
+  # 用于存储评论的 GitHub 仓库名
+  # Repository name to store comments
+  repo: repo-name
+
+  # GitHub OAuth App Client ID
+  # GitHub Application Client ID
+  client_id: xxx
+
+  # GitHub OAuth App Client Secret
+  # GitHub Application Client Secret
+  client_secret: xxx
+
+  # Issue 匹配规则
+  # Available values: pathname | url | title | other string
+  issue_term: pathname
+
+  # 页面唯一标识（默认使用 location.href）
+  # Page unique identifier
+  id:
+
+  # 页面标题（用作 issue 标题）
+  # Page title
+  title:
+
+  # 页面链接
+  # Page link
+  link:
+
+  # 页面描述
+  # Page description
+  desc:
+
+  # Issue 标签列表
+  # Issue labels
+  labels: []
+
+  # 评论分页数
+  # Comments per page
+  per_page: 20
+
+  # 评论最大高度（px）
+  # Max comment height (px)
+  max_comment_height: 250
+
+  # OAuth 代理地址（默认代理已失效，需自行部署）
+  # OAuth proxy URL
+  proxy: https://huazie-oauth.netlify.app/api/auth
+
+# ---------------------------------------------------------------
+# Waline - 简单但功能强大的评论系统
+# For more information: https://waline.js.org/
+# ---------------------------------------------------------------
+waline:
+  # 是否启用
+  # Available values: true | false
+  enable: true
+
+  # 是否显示加载提示
+  # Available values: true | false
+  loading: true
+
+  # Waline 服务端地址（必填）
+  # Waline server URL (required)
+  server_url: https://your-waline-server.netlify.app/.netlify/functions/comment
+
+  # Waline JS 文件 URL
+  # Waline JS file URL
+  js_url: https://unpkg.com/@waline/client@v3/dist/waline.js
+
+  # Waline CSS 文件 URL
+  # Waline CSS file URL
+  css_url: https://unpkg.com/@waline/client@v3/dist/waline.css
+
+  # 页面唯一标识
+  # Available values: pathname | url | title | custom path
+  path: pathname
+
+  # 评论区语言
+  # Available values: zh-CN | zh-TW | en | ja | ko | etc.
+  lang: zh-CN
+
+  # 表情包设置
+  # Emoji settings
+  emoji:
+
+  # 深色模式适配
+  # Available values: auto | CSS selector | true | false
+  dark: auto
+
+  # 评论排序方式
+  # Available values: latest | oldest | hottest
+  comment_sorting: latest
+
+  # 评论时需填写的信息字段
+  # Available values: nick | mail | link
+  meta: ['nick', 'mail', 'link']
+
+  # 必填字段
+  # Available values: nick | mail | link
+  required_meta: []
+
+  # 登录配置
+  # Available values: enable | disable | force
+  login: enable
+
+  # 评论字数限制
+  # Example: 100 | [0, 100] | false
+  word_limit: false
+
+  # 每页评论条数
+  # Comments per page
+  page_size: 10
+
+  # 表情包搜索功能
+  # Available values: true | false
+  search: false
+
+  # 是否隐藏页脚版权信息
+  # Available values: true | false
+  no_copyright: false
+
+  # 是否隐藏 RSS 订阅链接
+  # Available values: true | false
+  no_rss: false
+
+  # 表情反应功能
+  # Available values: true | false | custom reaction array
+  reaction: false

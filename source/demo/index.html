@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <link rel="icon" href="data:,">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diversity Comments SDK - 演示</title>
+    <style>
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5a67d8;
+            --accent: #764ba2;
+            --bg: #f5f7fa;
+            --card-bg: #fff;
+            --text: #2d3748;
+            --text-light: #718096;
+            --border: #e2e8f0;
+            --sidebar-w: 260px;
+            --radius: 12px;
+            --hero-gradient: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            --card-shadow: 0 1px 8px rgba(0,0,0,0.06);
+            --card-shadow-hover: 0 4px 20px rgba(0,0,0,0.1);
+            --card-header-bg: #fafbfc;
+            --card-header-hover: #f0f2f8;
+            --pre-bg: #1e1e2e;
+            --status-bg: #f7f8fc;
+            --article-h2: #1a202c;
+        }
+
+        /* ---- 暗色模式 ---- */
+        body.theme-dark {
+            --bg: #0f1117;
+            --card-bg: #1a1d27;
+            --text: #e2e8f0;
+            --text-light: #94a3b8;
+            --border: #2d3348;
+            --hero-gradient: linear-gradient(135deg, #3b3285 0%, #4a2758 100%);
+            --card-shadow: 0 1px 8px rgba(0,0,0,0.4);
+            --card-shadow-hover: 0 4px 20px rgba(0,0,0,0.5);
+            --card-header-bg: #151822;
+            --card-header-hover: #1e2235;
+            --pre-bg: #0d0f16;
+            --status-bg: #151822;
+            --article-h2: #e2e8f0;
+        }
+        body.theme-dark .sidebar { background: #13161f; border-right-color: var(--border); }
+        body.theme-dark .sidebar-nav a:hover { background: #1e2235; }
+        body.theme-dark .sidebar-nav a.active { background: #1e2235; }
+        body.theme-dark .card-header { background: var(--card-header-bg); }
+        body.theme-dark .card-header:hover { background: var(--card-header-hover); }
+        body.theme-dark .btn { background: #1a1d27; border-color: var(--border); color: var(--text); }
+        body.theme-dark .btn:hover { background: #252a3a; border-color: var(--primary); color: var(--primary); }
+        body.theme-dark .btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+        body.theme-dark .btn-danger { border-color: #fc8181; color: #fc8181; }
+        body.theme-dark .btn-danger:hover { background: #e53e3e; color: #fff; }
+        body.theme-dark .status-bar { background: var(--status-bg); }
+        body.theme-dark .field-table th { background: #151822; }
+        body.theme-dark .field-table code { background: #2d3348; color: #a0b4f8; }
+        body.theme-dark .feature-card { background: var(--card-bg); box-shadow: var(--card-shadow); }
+        body.theme-dark .feature-card:hover { box-shadow: var(--card-shadow-hover); }
+        body.theme-dark .overlay { background: rgba(0,0,0,0.5); }
+        body.theme-dark .menu-toggle { background: var(--card-bg); color: var(--text); }
+        body.theme-dark .article h2 { color: var(--article-h2); }
+        body.theme-dark pre { background: var(--pre-bg); }
+        body.theme-dark .sidebar-header { border-bottom-color: var(--border); }
+        body.theme-dark .sidebar-footer { border-top-color: var(--border); color: #4a5568; }
+        body.theme-dark #diversity-comments { border-top-color: var(--border); }
+        body.theme-dark .hero { background: var(--hero-gradient); }
+        body.theme-dark .back-to-top { background: var(--card-bg); color: var(--text); }
+        body.theme-dark .back-to-top:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.4); }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        #container {
+            margin: 0;
+            padding: 0;
+        }
+
+        /* ========== 左侧目录 ========== */
+        .sidebar {
+            position: fixed;
+            top: 0; left: 0;
+            width: var(--sidebar-w);
+            height: 100vh;
+            background: var(--card-bg);
+            border-right: 1px solid var(--border);
+            box-shadow: 2px 0 16px rgba(0,0,0,0.04);
+            overflow-y: auto;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar::-webkit-scrollbar { width: 4px; }
+        .sidebar::-webkit-scrollbar-thumb { background: #ddd; border-radius: 2px; }
+
+        .sidebar-header {
+            padding: 24px 20px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+        .sidebar-header .logo {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .sidebar-header .logo svg { flex-shrink: 0; }
+        .sidebar-header .version {
+            font-size: 0.72rem;
+            color: #a0aec0;
+            margin-top: 4px;
+            margin-left: 28px;
+        }
+
+        .sidebar-nav { padding: 8px 0; flex: 1; }
+        .sidebar-group {
+            padding: 16px 20px 6px;
+            font-size: 0.7rem;
+            color: #a0aec0;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 600;
+        }
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 20px;
+            color: var(--text-light);
+            text-decoration: none;
+            font-size: 0.88rem;
+            border-left: 3px solid transparent;
+            transition: all 0.2s;
+        }
+        .sidebar-nav a:hover {
+            background: #f7f8fc;
+            color: var(--primary);
+            border-left-color: var(--primary);
+        }
+        .sidebar-nav a.active {
+            background: #eef0ff;
+            color: var(--primary);
+            border-left-color: var(--primary);
+            font-weight: 600;
+        }
+        .sidebar-nav a .nav-icon {
+            width: 18px; height: 18px;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 0.85rem; flex-shrink: 0;
+        }
+
+        .sidebar-footer {
+            padding: 14px 20px;
+            border-top: 1px solid var(--border);
+            font-size: 0.75rem;
+            color: #cbd5e0;
+            text-align: center;
+        }
+
+        /* ========== 主体内容区 ========== */
+        .main {
+            margin-left: var(--sidebar-w);
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        .content-wrap {
+            max-width: 1060px;
+            margin: 0 auto;
+            padding: 32px 40px 40px;
+        }
+
+        /* ========== Hero ========== */
+        .hero {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            color: #fff;
+            padding: 48px 40px;
+            border-radius: var(--radius);
+            margin-bottom: 28px;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::after {
+            content: '';
+            position: absolute;
+            top: -40%; right: -10%;
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        .hero h1 { font-size: 2rem; margin-bottom: 10px; position: relative; z-index: 1; }
+        .hero p { opacity: 0.92; font-size: 1.05rem; position: relative; z-index: 1; max-width: 560px; }
+        .hero .tag-row {
+            display: flex; flex-wrap: wrap; gap: 8px;
+            margin-top: 18px; position: relative; z-index: 1;
+        }
+        .hero .tag {
+            background: rgba(255,255,255,0.18);
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            backdrop-filter: blur(4px);
+        }
+
+        /* ========== 特性网格 ========== */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 28px;
+        }
+        .feature-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 24px 20px;
+            box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .feature-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        .feature-card .icon {
+            width: 40px; height: 40px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.3rem;
+            margin-bottom: 12px;
+        }
+        .feature-card h3 { font-size: 0.95rem; margin-bottom: 6px; }
+        .feature-card p { font-size: 0.82rem; color: var(--text-light); line-height: 1.6; }
+
+        /* ========== 卡片 ========== */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+        .card-header {
+            background: #fafbfc;
+            padding: 14px 24px;
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.2s;
+        }
+        .card-header:hover { background: #f0f2f8; }
+        .card-header-left { display: flex; align-items: center; gap: 8px; }
+        .card-toggle-icon {
+            width: 20px; height: 20px;
+            transition: transform 0.3s;
+            color: #999;
+        }
+        .card.collapsed .card-toggle-icon { transform: rotate(-90deg); }
+        .card.collapsed .card-body { display: none; }
+        .card-body { padding: 24px; }
+
+        /* ---- 按钮 ---- */
+        .btn-group { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+        .btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 8px 18px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: #fff;
+            color: var(--text);
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+        .btn:hover { background: #f0f2f8; border-color: var(--primary); color: var(--primary); }
+        .btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+        .btn-danger { border-color: #fc8181; color: #e53e3e; }
+        .btn-danger:hover { background: #e53e3e; color: #fff; }
+
+        /* ---- 状态栏 ---- */
+        .status-bar {
+            display: flex; align-items: center; gap: 12px;
+            padding: 10px 16px;
+            background: #f7f8fc;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin-bottom: 16px;
+        }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #d0d5dd; }
+        .status-dot.ready { background: #48bb78; }
+        .status-dot.loading { background: #ed8936; animation: pulse 1s infinite; }
+        .status-dot.error { background: #f56565; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+        /* ---- 代码 ---- */
+        pre {
+            background: #1e1e2e;
+            color: #cdd6f4;
+            border-radius: 8px;
+            padding: 16px 20px;
+            overflow-x: auto;
+            font-size: 0.84rem;
+            line-height: 1.7;
+            margin-top: 12px;
+        }
+        pre code { font-family: "SF Mono","Fira Code","Consolas",monospace; }
+
+        /* ---- 表格 ---- */
+        .field-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+            font-size: 0.84rem;
+        }
+        .field-table th, .field-table td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
+        }
+        .field-table th { background: #f7f8fc; font-weight: 600; color: var(--text); }
+        .field-table code {
+            background: #eef0ff; padding: 2px 6px; border-radius: 4px;
+            font-size: 0.8rem; color: var(--primary);
+        }
+        .field-table .required { color: #e53e3e; font-size: 0.72rem; margin-left: 4px; }
+        .field-table .default { color: #a0aec0; font-size: 0.8rem; }
+
+        /* ---- 文章 ---- */
+        .article { padding: 30px 24px; }
+        .article h2 { font-size: 1.5rem; margin-bottom: 12px; color: #1a202c; }
+        .article time { color: #a0aec0; font-size: 0.85rem; display: block; margin-bottom: 20px; }
+        .article p { margin-bottom: 14px; color: var(--text-light); }
+        #diversity-comments {
+            min-height: 150px;
+            border-top: 1px solid var(--border);
+            margin-top: 30px;
+            padding-top: 20px;
+        }
+
+        /* ---- 页脚 ---- */
+        .footer {
+            text-align: center;
+            padding: 32px;
+            color: #a0aec0;
+            font-size: 0.85rem;
+        }
+
+        /* ========== 移动端菜单按钮 ========== */
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 14px; left: 14px;
+            z-index: 200;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(102,126,234,0.4);
+        }
+        .overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.35);
+            z-index: 90;
+        }
+        .overlay.show { display: block; }
+
+        /* ========== 响应式 ========== */
+
+        /* Pad 竖屏及以上 (≥769px): sidebar 保持 */
+        /* Pad 横屏 / 小桌面 (769-1024px): sidebar 窄化 + 内容区缩进 */
+        @media (max-width: 1024px) {
+            :root { --sidebar-w: 220px; }
+            .content-wrap { padding: 24px 28px 32px; }
+            .features { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+            .hero { padding: 36px 28px; }
+            .hero h1 { font-size: 1.6rem; }
+        }
+
+        /* 手机端 (<769px): sidebar 隐藏, 全宽 */
+        @media (max-width: 768px) {
+            :root { --sidebar-w: 0px; }
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                width: 280px;
+            }
+            .sidebar.open { transform: translateX(0); }
+            .main { margin-left: 0; }
+            .content-wrap { padding: 16px; }
+            .menu-toggle { display: block !important; }
+            .hero { padding: 28px 20px; border-radius: 8px; }
+            .hero h1 { font-size: 1.4rem; }
+            .hero p { font-size: 0.92rem; }
+            .features { grid-template-columns: 1fr; gap: 12px; }
+            .feature-card { padding: 18px 16px; }
+            .card-body { padding: 16px; }
+            .article { padding: 24px 16px; }
+            .field-table { font-size: 0.78rem; }
+            .field-table th, .field-table td { padding: 8px 8px; }
+            pre { font-size: 0.78rem; padding: 12px 14px; }
+        }
+
+        /* 小手机 (<480px) */
+        @media (max-width: 480px) {
+            .article { padding: 20px 12px; }
+            .hero { padding: 24px 16px; }
+            .hero h1 { font-size: 1.2rem; }
+            .hero .tag-row { gap: 6px; }
+            .hero .tag { font-size: 0.72rem; padding: 3px 10px; }
+            .btn { padding: 6px 12px; font-size: 0.82rem; }
+            .btn-group { gap: 8px; }
+        }
+        /* 返回顶部按钮 */
+        #back-to-top {
+            position: fixed;
+            right: 24px;
+            bottom: 32px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--accent, #4f46e5);
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: opacity 0.3s, visibility 0.3s, transform 0.3s;
+            z-index: 9999;
+        }
+        #back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        #back-to-top:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+        }
+
+        /* ========== 主题切换按钮 ========== */
+        .theme-toggle {
+            position: fixed;
+            top: 18px;
+            right: 20px;
+            z-index: 9999;
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: transparent;
+            color: var(--text);
+            font-size: 1.25rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            transition: color 0.2s, background 0.2s;
+        }
+        .theme-toggle:hover {
+            background: var(--card-header-hover);
+            color: var(--primary);
+        }
+        body.theme-dark .theme-toggle { color: var(--text-light); }
+        body.theme-dark .theme-toggle:hover { background: #2d3348; color: #e2e8f0; }
+
+        @media (max-width: 768px) {
+            .theme-toggle { top: 14px; right: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 主题切换按钮 -->
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="切换明暗模式">☀️</button>
+
+    <!-- 移动端菜单按钮 -->
+    <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+    <!-- 遮罩层 -->
+    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+    <!-- ========== 左侧目录 ========== -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                Diversity Comments
+            </div>
+            <div class="version">SDK v1.0.0</div>
+        </div>
+        <nav class="sidebar-nav" id="sidebarNav">
+            <div class="sidebar-group">指南</div>
+            <a href="#card-quickstart" class="active">
+                <span class="nav-icon">🚀</span>快速开始
+            </a>
+            <a href="#card-features">
+                <span class="nav-icon">✨</span>功能特性
+            </a>
+            <a href="#card-config">
+                <span class="nav-icon">📋</span>配置参数
+            </a>
+            <div class="sidebar-group">集成</div>
+            <a href="#card-giscus">
+                <span class="nav-icon">💬</span>Giscus 白名单
+            </a>
+            <a href="#card-systems">
+                <span class="nav-icon">🔌</span>评论系统配置
+            </a>
+            <div class="sidebar-group">演示</div>
+            <a href="#card-api">
+                <span class="nav-icon">🎮</span>API 交互
+            </a>
+            <a href="#card-demo">
+                <span class="nav-icon">📝</span>示例文章
+            </a>
+        </nav>
+        <div class="sidebar-footer">Diversity Comments SDK</div>
+    </aside>
+
+    <!-- ========== 右侧内容区 ========== -->
+    <div class="main">
+        <div class="content-wrap">
+
+            <!-- Hero -->
+            <div class="hero">
+                <h1>Diversity Comments SDK</h1>
+                <p>一套 API 集成六大评论系统，iframe 沙箱隔离，开箱即用的多评论方案。</p>
+                <div class="tag-row">
+                    <span class="tag">Utterances</span>
+                    <span class="tag">Gitalk</span>
+                    <span class="tag">Giscus</span>
+                    <span class="tag">Twikoo</span>
+                    <span class="tag">Gitment</span>
+                    <span class="tag">Waline</span>
+                    <span class="tag">明暗模式</span>
+                    <span class="tag">iframe 隔离</span>
+                </div>
+            </div>
+
+            <!-- 快速开始 -->
+            <div class="card" id="card-quickstart">
+                <div class="card-header" onclick="toggleCard(this)">
+                    <div class="card-header-left">
+                        <svg class="card-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        <span>快速开始</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p style="margin-bottom:16px;">三步接入：引入 SDK → 放置容器 → 调用 <code>init()</code>。</p>
+
+                    <h3 style="font-size:0.92rem;margin-bottom:8px;color:var(--text-light);">Step 1 — 放置容器</h3>
+                    <pre><code>&lt;div id="diversity-comments"&gt;&lt;/div&gt;</code></pre>
+
+                    <h3 style="font-size:0.92rem;margin:16px 0 8px;color:var(--text-light);">Step 2 — 引入 SDK</h3>
+                    <pre><code>&lt;script src="https://huazie.github.io/js/diversity-comments.js"&gt;&lt;/script&gt;</code></pre>
+
+                    <h3 style="font-size:0.92rem;margin:16px 0 8px;color:var(--text-light);">Step 3 — 初始化</h3>
+                    <pre><code>DiversityComments.init({
+    container: '#diversity-comments',
+    comments: {
+        pageId: '/posts/hello-world',
+        style: 'tabs',
+        active: 'utterances',
+        lazyload: true,
+        storage: true,
+        darkMode: 'auto',
+        lang: 'zh-CN'
+    },
+    utterances: {
+        enable: true,
+        repo: 'user/repo',
+        issue_term: 'pathname'
+    },
+    giscus: {
+        enable: true,
+        repo: 'user/repo',
+        repo_id: 'R_xxx',
+        category: 'Announcements',
+        category_id: 'DIC_xxx',
+        mapping: 'pathname'
+    },
+    onReady: function(iframe, active) {
+        console.log('评论已就绪，当前:', active);
+    },
+    onActiveChange: function(active) {
+        console.log('切换到:', active);
+    },
+    onError: function(msg) {
+        console.error('加载失败: ' + msg);
+    }
+});</code></pre>
+                </div>
+            </div>
+
+            <!-- 功能特性 -->
+            <div class="card" id="card-features">
+                <div class="card-header" onclick="toggleCard(this)">
+                    <div class="card-header-left">
+                        <svg class="card-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        <span>功能特性</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="features">
+                        <div class="feature-card">
+                            <div class="icon" style="background:#eef0ff;color:var(--primary);">🔌</div>
+                            <h3>六大系统</h3>
+                            <p>Utterances / Gitalk / Giscus / Twikoo / Gitment / Waline 一站集成</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="icon" style="background:#fef3c7;color:#d97706;">🔄</div>
+                            <h3>实时切换</h3>
+                            <p>API 一行代码切换评论系统，支持 Tab 和 Dropdown 两种导航</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="icon" style="background:#d1fae5;color:#059669;">🌑</div>
+                            <h3>明暗模式</h3>
+                            <p>支持 light / dark / auto 三种模式，跟随系统或手动切换</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="icon" style="background:#fce7f3;color:#db2777;">📦</div>
+                            <h3>iframe 隔离</h3>
+                            <p>评论区运行在沙箱 iframe 中，不影响宿主页面的样式和脚本</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="icon" style="background:#e0e7ff;color:#4f46e5;">📐</div>
+                            <h3>自动高度</h3>
+                            <p>MutationObserver + 定时器双保险，iframe 高度实时同步到父页面</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="icon" style="background:#f3e8ff;color:#9333ea;">💾</div>
+                            <h3>懒加载 & 记忆</h3>
+                            <p>视口内才加载评论，localStorage 记住用户上次选择的评论系统</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 配置参数说明 -->
+            <div class="card" id="card-config">
+                <div class="card-header" onclick="toggleCard(this)">
+                    <div class="card-header-left">
+                        <svg class="card-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        <span>配置参数说明</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h3 style="font-size:0.95rem;margin-bottom:8px;">基础配置</h3>
+                    <table class="field-table">
+                        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+                        <tr><td><code>server</code></td><td>string</td><td class="default">自动检测</td><td>评论服务地址，SDK 自动捕获脚本加载地址</td></tr>
+                        <tr><td><code>container</code></td><td>string</td><td class="default">'#diversity-comments'</td><td>挂载容器的 CSS 选择器</td></tr>
+                    </table>
+
+                    <h3 style="font-size:0.95rem;margin:20px 0 8px;">评论通用配置 (comments)</h3>
+                    <table class="field-table">
+                        <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+                        <tr><td><code>pageId</code></td><td>string</td><td class="default">location.pathname</td><td>页面唯一标识，区分不同页面的评论</td></tr>
+                        <tr><td><code>style</code></td><td>string</td><td class="default">'tabs'</td><td>显示模式：<code>tabs</code> 选项卡 / <code>dropdown</code> 下拉菜单</td></tr>
+                        <tr><td><code>active</code></td><td>string</td><td class="default">'utterances'</td><td>默认激活的评论系统</td></tr>
+                        <tr><td><code>lazyload</code></td><td>boolean</td><td class="default">true</td><td>进入视口才加载评论</td></tr>
+                        <tr><td><code>storage</code></td><td>boolean</td><td class="default">true</td><td>记住用户选择的评论系统</td></tr>
+                        <tr><td><code>darkMode</code></td><td>string</td><td class="default">'auto'</td><td>明暗模式：<code>auto</code> / <code>light</code> / <code>dark</code></td></tr>
+                        <tr><td><code>lang</code></td><td>string</td><td class="default">'zh-CN'</td><td>语言设置</td></tr>
+                        <tr><td><code>nav</code></td><td>object</td><td class="default">六系统默认</td><td>导航配置：文字、排序、图标</td></tr>
+                    </table>
+
+                    <h3 style="font-size:0.95rem;margin:20px 0 8px;">回调函数</h3>
+                    <table class="field-table">
+                        <tr><th>参数</th><th>类型</th><th>说明</th></tr>
+                        <tr><td><code>onReady</code></td><td>function</td><td>初始化完成回调，参数 <code>iframe</code> 为 iframe 元素，<code>active</code> 为当前激活的评论系统名</td></tr>
+                        <tr><td><code>onError</code></td><td>function</td><td>错误回调，参数 <code>msg</code> 为错误信息</td></tr>
+                        <tr><td><code>onActiveChange</code></td><td>function</td><td>激活评论系统变更回调，参数 <code>active</code> 为变更后的评论系统名</td></tr>
+                    </table>
+
+                    <h3 style="font-size:0.95rem;margin:20px 0 8px;">API 方法</h3>
+                    <table class="field-table">
+                        <tr><th>方法</th><th>参数</th><th>说明</th></tr>
+                        <tr><td><code>switchTo(name)</code></td><td>评论系统名称</td><td>切换到指定评论系统</td></tr>
+                        <tr><td><code>setColorScheme(scheme)</code></td><td>'light' | 'dark' | 'auto'</td><td>切换深色/浅色模式</td></tr>
+                        <tr><td><code>refresh()</code></td><td>无</td><td>刷新当前评论</td></tr>
+                        <tr><td><code>getConfig()</code></td><td>无</td><td>获取当前配置（深拷贝）</td></tr>
+                        <tr><td><code>destroy()</code></td><td>无</td><td>销毁实例，移除 iframe 和事件监听</td></tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Giscus 白名单 -->
+            <div class="card" id="card-giscus">
+                <div class="card-header" onclick="toggleCard(this)">
+                    <div class="card-header-left">
+                        <svg class="card-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        <span>通过 iframe 嵌入 Giscus 的配置指南</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p style="margin-bottom:16px;">Giscus 会检查<strong>顶层父页面域名</strong>而非 iframe 的 <code>src</code> 域名，因此需将所有嵌入域名加入白名单。</p>
+
+                    <h3 style="font-size:0.95rem;margin-bottom:8px;">1. 配置 giscus.json</h3>
+                    <p style="margin-bottom:8px;">在 <strong>Giscus 评论仓库</strong>根目录创建：</p>
+                    <pre><code>{
+  "origins": [
+    "http://localhost:4000",
+    "http://localhost:3000",
+    "http://127.0.0.1:4000",
+    "https://你的生产域名.com"
+  ]
+}</code></pre>
+
+                    <h3 style="font-size:0.95rem;margin:16px 0 8px;">2. 提交并推送</h3>
+                    <pre><code>git add giscus.json && git commit -m "Add Giscus origins" && git push</code></pre>
+
+                    <h3 style="font-size:0.95rem;margin:16px 0 8px;">3. 验证</h3>
+                    <p>等待 1-2 分钟，用无痕模式打开，F12 → Network 查看 <code>giscus.app</code> 的 Response Headers：</p>
+                    <pre><code>content-security-policy: frame-ancestors 'self' http://localhost:4000 ...</code></pre>
+
+                    <table class="field-table" style="margin-top:16px;">
+                        <tr><th>要点</th><th>说明</th></tr>
+                        <tr><td>文件位置</td><td>放在 Giscus <strong>评论仓库</strong>根目录，不是博客仓库</td></tr>
+                        <tr><td>域名区分</td><td><code>localhost</code> 和 <code>127.0.0.1</code> 是不同 origin，需分别配置</td></tr>
+                        <tr><td>端口号</td><td>不同端口是不同 origin，如 <code>:3000</code> 和 <code>:4000</code> 需分开列出</td></tr>
+                        <tr><td>协议</td><td><code>http://</code> 和 <code>https://</code> 需分别配置</td></tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 评论系统配置 -->
+            <div class="card" id="card-systems">
+                <div class="card-header" onclick="toggleCard(this)">
+                    <div class="card-header-left">
+                        <svg class="card-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        <span>评论系统配置参考</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p style="margin-bottom:16px;">每个评论系统通过 <code>init()</code> 的同名属性传入配置，只需配置 <code>enable: true</code> 的系统。</p>
+
+                    <h3 style="font-size:0.95rem;margin-bottom:8px;">Utterances</h3>
+                    <pre><code>utterances: {
+    enable: true,
+    repo: 'owner/comments-repo',           // 必填：GitHub 仓库
+    issue_term: 'pathname',                 // Issue 映射方式
+    theme: 'github-light',                  // 浅色主题
+    dark: 'github-dark'                    // 深色主题
+}</code></pre>
+
+                    <h3 style="font-size:0.95rem;margin:20px 0 8px;">Gitalk</h3>
+                    <pre><code>gitalk: {
+    enable: true,
+    github_id: 'your-github-id',           // 必填：GitHub 用户名
+    repo: 'comment-repo',                   // 必填：评论仓库
+    client_id: 'YOUR_CLIENT_ID',           // 必填：OAuth App Client ID
+    client_secret: 'YOUR_CLIENT_SECRET',   // 必填：OAuth App Client Secret
+    admin_user: 'your-github-id',
+    distraction_free_mode: true,
+    proxy: 'https://your-oauth-proxy.com/api/auth',
+    issue_term: 'pathname'
+}</code></pre>
+
+                    <h3 style="font-size:0.95rem;margin:20px 0 8px;">Giscus</h3>
+                    <pre><code>giscus: {
+    enable: true,
+    repo: 'owner/comments-repo',           // 必填
+    repo_id: 'R_xxxxxxxxxxxxx',            // 必填：从 giscus.app 获取
+    category: 'Announcements',              // 必填
+    category_id: 'DIC_xxxxxxxxxxxxxxxxx',   // 必填
+    mapping: 'pathname',
+    reactions_enabled: 1,
+    theme: 'light',
+    dark: 'dark',
+    input_position: 'bottom'
+}</code></pre>
+
+                    <h3 style="font-size:0.95rem;margin:20px 0 8px;">Twikoo</h3>
+                    <pre><code>twikoo: {
+    enable: true,
+    env_id: 'https://your-twikoo.vercel.app',  // 必填：云函数地址
+    lang: 'zh-CN'
+}</code></pre>
+
+                    <h3 style="font-size:0.95rem;margin:20px 0 8px;">Gitment</h3>
+                    <pre><code>gitment: {
+    enable: true,
+    owner: 'your-github-id',               // 必填
+    repo: 'comment-repo',                   // 必填
+    client_id: 'YOUR_CLIENT_ID',           // 必填
+    client_secret: 'YOUR_CLIENT_SECRET',   // 必填
+    issue_term: 'pathname',
+    proxy: 'https://your-oauth-proxy.com/api/auth',
+    per_page: 20
+}</code></pre>
+
+                    <h3 style="font-size:0.95rem;margin:20px 0 8px;">Waline</h3>
+                    <pre><code>waline: {
+    enable: true,
+    server_url: 'https://your-waline-server.vercel.app/.netlify/functions/comment',  // 必填
+    lang: 'zh-CN',
+    dark: '.dark-theme',
+    reaction: true,
+    page_size: 10
+}</code></pre>
+                </div>
+            </div>
+
+            <!-- API 调用演示 -->
+            <div class="card" id="card-api">
+                <div class="card-header" onclick="toggleCard(this)">
+                    <div class="card-header-left">
+                        <svg class="card-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        <span>API 交互演示</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="status-bar">
+                        <span class="status-dot" id="statusDot"></span>
+                        <span id="statusText">未初始化</span>
+                    </div>
+
+                    <p style="font-weight:600;margin-bottom:10px;">切换评论系统 <code style="font-size:0.82rem;">switchTo(name)</code></p>
+                    <div class="btn-group">
+                        <button class="btn active" data-comment="utterances" onclick="switchComment('utterances')">Utterances</button>
+                        <button class="btn" data-comment="gitalk" onclick="switchComment('gitalk')">Gitalk</button>
+                        <button class="btn" data-comment="giscus" onclick="switchComment('giscus')">Giscus</button>
+                        <button class="btn" data-comment="twikoo" onclick="switchComment('twikoo')">Twikoo</button>
+                        <button class="btn" data-comment="gitment" onclick="switchComment('gitment')">Gitment</button>
+                        <button class="btn" data-comment="waline" onclick="switchComment('waline')">Waline</button>
+                    </div>
+
+                    <p style="font-weight:600;margin-bottom:10px;">明暗模式 <code style="font-size:0.82rem;">setColorScheme(scheme)</code></p>
+                    <div class="btn-group">
+                        <button class="btn active" data-scheme="auto" onclick="switchScheme('auto')">💻 跟随系统</button>
+                        <button class="btn" data-scheme="light" onclick="switchScheme('light')">☀️ 浅色</button>
+                        <button class="btn" data-scheme="dark" onclick="switchScheme('dark')">🌙 深色</button>
+                    </div>
+
+                    <p style="font-weight:600;margin-bottom:10px;">实例操作</p>
+                    <div class="btn-group">
+                        <button class="btn" onclick="DiversityComments.refresh()">🔄 刷新评论</button>
+                        <button class="btn" onclick="showConfig()">📄 查看配置</button>
+                        <button class="btn btn-danger" onclick="destroyComments()">🗑️ 销毁实例</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 示例文章 -->
+            <div class="card" id="card-demo">
+                <div class="article">
+                    <h2>示例文章：如何使用 Diversity Comments</h2>
+                    <time>2026-06-20</time>
+                    <p>
+                        Diversity Comments 是一个轻量级的多评论系统聚合方案。
+                        它通过 iframe + postMessage 的方式，
+                        将 Utterances、Gitalk、Giscus、Twikoo、Gitment 和 Waline 六大评论系统统一集成到你的页面中。
+                    </p>
+                    <p>
+                        你可以通过 <code>DiversityComments.init()</code> 一键初始化，
+                        通过 <code>switchTo()</code> 在评论系统之间自由切换，
+                        通过 <code>setColorScheme()</code> 适配深色/浅色模式，
+                        通过 <code>destroy()</code> 完全清理评论环境。
+                    </p>
+                    <p>
+                        SDK 会自动管理 iframe 的高度变化，无需手动计算。
+                        当 iframe 内部内容变化时，会自动通过 <code>diversity:resize</code> 消息通知父页面调整高度。
+                    </p>
+                    <div id="diversity-comments"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="footer">
+        Diversity Comments SDK v1.0.0 · 支持 6 种评论系统
+    </div>
+
+    <script src="./../js/diversity-comments.js"></script>
+
+    <script>
+        // ---- 侧边栏切换 ----
+        function toggleSidebar() {
+            var sb = document.getElementById('sidebar');
+            var ov = document.getElementById('overlay');
+            sb.classList.toggle('open');
+            ov.classList.toggle('show');
+        }
+
+        // ---- 目录高亮 ----
+        (function() {
+            var nav = document.getElementById('sidebarNav');
+            var links = nav.querySelectorAll('a');
+            var cardIds = [];
+            links.forEach(function(a) {
+                var id = a.getAttribute('href').replace('#', '');
+                if (id) cardIds.push(id);
+            });
+
+            links.forEach(function(a) {
+                a.addEventListener('click', function() {
+                    links.forEach(function(x) { x.classList.remove('active'); });
+                    a.classList.add('active');
+                    // 移动端点击后收起
+                    if (window.innerWidth <= 768) toggleSidebar();
+                });
+            });
+
+            if (window.IntersectionObserver) {
+                var observer = new IntersectionObserver(function(entries) {
+                    var visible = entries.filter(function(e) { return e.isIntersecting; });
+                    if (!visible.length) return;
+                    visible.sort(function(a, b) { return a.boundingClientRect.top - b.boundingClientRect.top; });
+                    var id = visible[0].target.id;
+                    links.forEach(function(a) {
+                        a.classList.toggle('active', a.getAttribute('href') === '#' + id);
+                    });
+                }, { threshold: 0.1, rootMargin: '-10% 0px -60% 0px' });
+
+                cardIds.forEach(function(id) {
+                    var el = document.getElementById(id);
+                    if (el) observer.observe(el);
+                });
+            }
+        })();
+
+        // ---- 卡片折叠 ----
+        function toggleCard(header) {
+            header.closest('.card').classList.toggle('collapsed');
+        }
+
+        // ---- 状态 ----
+        var currentActive = 'utterances';
+        function updateStatus(dotClass, text) {
+            document.getElementById('statusDot').className = 'status-dot ' + dotClass;
+            document.getElementById('statusText').textContent = text;
+        }
+
+        // ---- 同步 API 演示按钮状态 ----
+        function syncApiButtons(active) {
+            // 直接选择所有 data-comment 按钮，不依赖 :first-of-type
+            document.querySelectorAll('#card-api .btn[data-comment]').forEach(function(btn) {
+                btn.classList.toggle('active', btn.getAttribute('data-comment') === active);
+            });
+        }
+
+        // ---- 切换明暗模式 ----
+        function switchScheme(scheme) {
+            syncSchemeButtons(scheme);
+            DiversityComments.setColorScheme(scheme);
+            // 同步页面主题
+            var isDark = (scheme === 'dark');
+            document.body.classList.toggle('theme-dark', isDark);
+            localStorage.setItem('demo_theme', scheme);
+            updateThemeToggle(scheme);
+        }
+        function syncSchemeButtons(scheme) {
+            document.querySelectorAll('#card-api .btn[data-scheme]').forEach(function(btn) {
+                btn.classList.toggle('active', btn.getAttribute('data-scheme') === scheme);
+            });
+        }
+
+        // ---- 切换评论系统 ----
+        function switchComment(name) {
+            if (!window.DiversityComments) {
+                alert('SDK 未加载');
+                return;
+            }
+            currentActive = name;
+            DiversityComments.switchTo(name);
+            syncApiButtons(name);
+            updateStatus('ready', '已切换到 ' + name);
+        }
+
+        // ---- 查看配置 ----
+        function showConfig() {
+            if (!window.DiversityComments) { alert('SDK 未加载'); return; }
+            var raw = DiversityComments.getConfig();
+            var json = JSON.stringify(desensitize(raw), null, 2);
+            var w = window.open('', '_blank', 'width=600,height=500');
+            w.document.write('<pre style="padding:20px;font-size:14px;font-family:Consolas,monospace;">' + json + '</pre>');
+        }
+
+        // ---- 配置脱敏 ----
+        var _sensitiveKeys = [
+            'client_secret', 'client_id', 'clientSecret', 'clientId',
+            'admin_user', 'adminUser',
+            'env_id', 'envId', 'server_url', 'serverUrl',
+            'repo_id', 'repoId', 'category_id', 'categoryId',
+            'proxy', 'token', 'accessToken', 'secretKey'
+        ];
+        function desensitize(obj) {
+            if (obj == null || typeof obj !== 'object') return obj;
+            var result = Array.isArray(obj) ? [] : {};
+            for (var key in obj) {
+                if (!obj.hasOwnProperty(key)) continue;
+                if (_sensitiveKeys.indexOf(key) !== -1) {
+                    result[key] = '***';
+                } else if (typeof obj[key] === 'object' && obj[key] !== null) {
+                    result[key] = desensitize(obj[key]);
+                } else {
+                    result[key] = obj[key];
+                }
+            }
+            return result;
+        }
+
+        // ---- 销毁 ----
+        function destroyComments() {
+            if (!window.DiversityComments) return;
+            if (confirm('确定要销毁评论实例吗？')) {
+                DiversityComments.destroy();
+                updateStatus('', '已销毁（请刷新页面重新初始化）');
+            }
+        }
+
+        // ---- 初始化 ----
+        if (window.DiversityComments) {
+            DiversityComments.init({
+                container: '#diversity-comments',
+                comments: {
+                    pageId: '/comments',
+                    style: 'tabs',
+                    active: 'utterances',
+                    lazyload: true,
+                    storage: true,
+                    darkMode: 'auto',
+                    lang: 'zh-CN'
+                },
+                utterances: {
+                    enable: true,
+                    loading: true,
+                    repo: 'huazie/hexo-theme-diversity',
+                    issue_term: 'pathname',
+                    theme: 'github-light',
+                    dark: 'github-dark'
+                },
+                gitalk: {
+                    enable: true,
+                    loading: true,
+                    github_id: 'huazie',
+                    repo: 'hexo-theme-diversity',
+                    client_id: 'Ov23liUeEbTbvL4TtFLI',
+                    client_secret: '625f6af43748eb4a6a27a9111d252155e88c836e',
+                    admin_user: 'huazie',
+                    distraction_free_mode: true,
+                    proxy: 'https://huazie-oauth.netlify.app/api/auth',
+                    issue_term: 'pathname'
+                },
+                giscus: {
+                    enable: true,
+                    loading: true,
+                    repo: 'huazie/hexo-theme-diversity',
+                    repo_id: 'R_kgDOLxZw-w',
+                    category: 'Announcements',
+                    category_id: 'DIC_kwDOLxZw-84CiJXv',
+                    mapping: 'pathname',
+                    strict: 0,
+                    reactions_enabled: 1,
+                    emit_metadata: 0,
+                    theme: 'light',
+                    dark: 'dark',
+                    input_position: 'bottom'
+                },
+                twikoo: {
+                    enable: true,
+                    loading: true,
+                    env_id: 'https://huazie.netlify.app/.netlify/functions/twikoo',
+                    lang: 'zh-CN'
+                },
+                gitment: {
+                    enable: true,
+                    loading: true,
+                    owner: 'huazie',
+                    repo: 'hexo-theme-diversity',
+                    client_id: 'Ov23li7WIKTIa0F9GJtZ',
+                    client_secret: '7f068a3fa7852d2ded8742833939eac385d957b6',
+                    issue_term: 'pathname',
+                    proxy: 'https://huazie-oauth.netlify.app/api/auth'
+                },
+                waline: {
+                    enable: true,
+                    loading: true,
+                    server_url: 'https://huazie-waline.netlify.app/.netlify/functions/comment',
+                    path: 'pathname',
+                    lang: 'zh-CN',
+                    dark: '.dark-theme',
+                    reaction: true
+                },
+                onReady: function(iframe, active) {
+                    console.log('[demo] onReady, active:', active);
+                    if (active) currentActive = active;
+                    syncApiButtons(currentActive);
+                    updateStatus('ready', '评论系统已就绪 · 当前: ' + currentActive);
+                    // 同步页面主题到评论
+                    if (window._pendingDemoTheme) {
+                        DiversityComments.setColorScheme(window._pendingDemoTheme);
+                        window._pendingDemoTheme = null;
+                    }
+                },
+                onActiveChange: function(active) {
+                    console.log('[demo] onActiveChange, active:', active);
+                    if (active) currentActive = active;
+                    syncApiButtons(currentActive);
+                    updateStatus('ready', '已切换到 ' + currentActive);
+                },
+                onError: function(msg) {
+                    updateStatus('error', '错误: ' + msg);
+                }
+            });
+            updateStatus('loading', '正在加载评论系统...');
+        }
+
+        // ---- 主题切换 ----
+        function toggleTheme() {
+            var isDark = document.body.classList.toggle('theme-dark');
+            var scheme = isDark ? 'dark' : 'light';
+            localStorage.setItem('demo_theme', scheme);
+            updateThemeToggle(scheme);
+            syncSchemeButtons(scheme);
+            // 同步评论主题
+            if (window.DiversityComments) {
+                DiversityComments.setColorScheme(scheme);
+            }
+        }
+        function updateThemeToggle(theme) {
+            var btn = document.getElementById('themeToggle');
+            if (btn) btn.textContent = theme === 'dark' ? '🌙' : '☀️';
+        }
+        // 页面加载时恢复主题
+        (function() {
+            var saved = localStorage.getItem('demo_theme');
+            var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            var theme = saved || (prefersDark ? 'dark' : 'light');
+            if (theme === 'dark') {
+                document.body.classList.add('theme-dark');
+            }
+            updateThemeToggle(theme);
+            syncSchemeButtons(theme);
+            // 评论主题同步（需等 DiversityComments 就绪，由 onReady 统一处理）
+            window._pendingDemoTheme = theme;
+        })();
+    </script>
+    <button id="back-to-top" title="返回顶部" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
+    </button>
+    <script>
+        (function() {
+            var btn = document.getElementById('back-to-top');
+            window.addEventListener('scroll', function() {
+                btn.classList.toggle('visible', window.scrollY > 300);
+            });
+        })();
+    </script>
+</body>
+</html>

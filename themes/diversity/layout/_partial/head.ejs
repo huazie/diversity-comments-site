@@ -1,0 +1,47 @@
+<meta charset="utf-8">
+<% 
+    var title = page.title;
+    var themeName = config.theme.charAt(0).toUpperCase() + config.theme.slice(1);
+    if (title) title += ' | ' + themeName;
+    if (!title) title = theme.title;
+    if (!title) title = config.title;
+%>
+<title><%= title %></title>
+<link rel="icon" href="data:,">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<% if (config.author){ %><meta name="author" content="<%= config.author %>"><% } %>
+<% if (theme.description){ %>
+<meta name="description" content="<%= theme.description %>">
+<% } else if (config.description){ %>
+<meta name="description" content="<%= config.description %>">
+<% } %>
+
+<%- css('css/style.css') %>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+
+<% 
+// 判断当前页面是否是 comments 页面（iframe 评论页面）
+var isCommentsPage = page.layout === 'comments' || page.path.indexOf('comments/') === 0;
+%>
+<% if (isCommentsPage) { %>
+<script>
+// Iframe 评论页面：拦截第一次 page:loaded 事件，等待父页面配置
+(function() {
+    var parentConfigReceived = false;
+    window.addEventListener('page:loaded', function(event) {
+        if (!parentConfigReceived) {
+            event.stopImmediatePropagation();
+            return false;
+        }
+    }, true);
+    
+    // 监听父页面配置消息
+    window.addEventListener('message', function(event) {
+        if (event.data && event.data.type === 'diversity:init') {
+            parentConfigReceived = true;
+        }
+    });
+})();
+</script>
+<% } %>
