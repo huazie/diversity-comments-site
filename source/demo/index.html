@@ -551,6 +551,20 @@
             }
         }
 
+        // ---- 主题初始化（必须在 init 之前）----
+        (function() {
+            var saved = localStorage.getItem('demo_theme');
+            var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            var theme = saved || (prefersDark ? 'dark' : 'light');
+            if (theme === 'dark') {
+                document.body.classList.add('theme-dark');
+            }
+            updateThemeToggle(theme);
+            syncSchemeButtons(theme);
+            // 通过 init 的 darkMode 参数传入 iframe，SDK 不依赖父页面任何 localStorage key
+            window.__initDarkMode__ = theme;
+        })();
+
         // ---- 初始化 ----
         if (window.DiversityComments) {
             DiversityComments.init({
@@ -561,7 +575,7 @@
                     active: 'utterances',
                     lazyload: true,
                     storage: true,
-                    darkMode: 'auto',
+                    darkMode: window.__initDarkMode__ || 'light',
                     lang: 'zh-CN'
                 },
                 utterances: {
@@ -629,11 +643,6 @@
                     if (active) currentActive = active;
                     syncApiButtons(currentActive);
                     updateStatus('ready', '评论系统已就绪 · 当前: ' + currentActive);
-                    // 同步页面主题到评论
-                    if (window._pendingDemoTheme) {
-                        DiversityComments.setColorScheme(window._pendingDemoTheme);
-                        window._pendingDemoTheme = null;
-                    }
                 },
                 onActiveChange: function(active) {
                     console.log('[demo] onActiveChange, active:', active);
@@ -664,19 +673,6 @@
             var btn = document.getElementById('themeToggle');
             if (btn) btn.textContent = theme === 'dark' ? '🌙' : '☀️';
         }
-        // 页面加载时恢复主题
-        (function() {
-            var saved = localStorage.getItem('demo_theme');
-            var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            var theme = saved || (prefersDark ? 'dark' : 'light');
-            if (theme === 'dark') {
-                document.body.classList.add('theme-dark');
-            }
-            updateThemeToggle(theme);
-            syncSchemeButtons(theme);
-            // 评论主题同步（需等 DiversityComments 就绪，由 onReady 统一处理）
-            window._pendingDemoTheme = theme;
-        })();
     </script>
     <button id="back-to-top" title="返回顶部" onclick="window.scrollTo({top:0,behavior:'smooth'})">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>

@@ -564,6 +564,14 @@
                         // 根据 style 决定显示 tabs 还是 dropdown
                         var style = (data.config.comments && data.config.comments.style) || 'tabs';
                         switchThemeUI(style);
+                        
+                        // ---- 应用父页面传入的暗色模式（必须在 reinitComments 之前！）----
+                        var darkMode = (data.config.comments && data.config.comments.darkMode) || 'light';
+                        var isDark = darkMode === 'auto'
+                            ? global.matchMedia('(prefers-color-scheme: dark)').matches
+                            : darkMode === 'dark';
+                        document.documentElement.classList.toggle('dark-theme', isDark);
+                        
                         // 激活指定的评论系统 tab
                         var active = (data.config.comments && data.config.comments.active) || 'utterances';
                         // 如果 storage 开启，优先使用 localStorage 中记忆的选择
@@ -601,18 +609,10 @@
 
                 case 'diversity:setColorScheme':
                     // 切换深色/浅色模式
-                    if (data.scheme === 'dark') {
-                        document.documentElement.classList.add('dark-theme');
-                    } else if (data.scheme === 'light') {
-                        document.documentElement.classList.remove('dark-theme');
-                    } else if (data.scheme === 'auto') {
-                        var prefersDark = global.matchMedia('(prefers-color-scheme: dark)').matches;
-                        if (prefersDark) {
-                            document.documentElement.classList.add('dark-theme');
-                        } else {
-                            document.documentElement.classList.remove('dark-theme');
-                        }
-                    }
+                    var scIsDark = data.scheme === 'auto'
+                        ? global.matchMedia('(prefers-color-scheme: dark)').matches
+                        : data.scheme === 'dark';
+                    document.documentElement.classList.toggle('dark-theme', scIsDark);
                     // 通知评论系统刷新配色
                     var evt = document.createEvent('Event');
                     evt.initEvent('color-scheme:refresh', true, true);
