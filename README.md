@@ -1,5 +1,7 @@
 # Diversity Comments SDK
 
+[![build and deploy](https://img.shields.io/github/actions/workflow/status/huazie/huazie.github.io/pages.yml?branch=main&label=build%20and%20deploy&logo=github)](https://github.com/huazie/huazie.github.io/actions/workflows/pages.yml) [![Hexo version](https://img.shields.io/badge/hexo-%3E=5.3.0-blue?style=flat&logo=hexo)](https://hexo.io) [![license](https://img.shields.io/badge/license-MIT-orange)](https://github.com/huazie/hexo-theme-diversity/blob/main/LICENSE) [![GitHub Repo stars](https://img.shields.io/github/stars/huazie/hexo-theme-diversity?style=flat)](https://github.com/huazie/hexo-theme-diversity/stargazers)
+
 一套 API 集成六大评论系统，基于 iframe 沙箱隔离，开箱即用的多评论方案。
 
 [英文说明/English Documentation](README_EN.md)
@@ -17,7 +19,7 @@
 
 ## 快速开始
 
-[在线演示](https://huazie.github.io/demo/) · [SDK 文档](#快速开始)
+[在线演示](https://blog.huazie.com/demo/#card-demo) · [SDK 文档](https://huazie.github.io/demo/#card-quickstart)
 
 ### 三步接入
 

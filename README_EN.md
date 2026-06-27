@@ -1,5 +1,7 @@
 # Diversity Comments SDK
 
+[![build and deploy](https://img.shields.io/github/actions/workflow/status/huazie/huazie.github.io/pages.yml?branch=main&label=build%20and%20deploy&logo=github)](https://github.com/huazie/huazie.github.io/actions/workflows/pages.yml) [![Hexo version](https://img.shields.io/badge/hexo-%3E=5.3.0-blue?style=flat&logo=hexo)](https://hexo.io) [![license](https://img.shields.io/badge/license-MIT-orange)](https://github.com/huazie/hexo-theme-diversity/blob/main/LICENSE) [![GitHub Repo stars](https://img.shields.io/github/stars/huazie/hexo-theme-diversity?style=flat)](https://github.com/huazie/hexo-theme-diversity/stargazers)
+
 One API to integrate six comment systems, with iframe sandbox isolation — ready to use out of the box.
 
 [中文说明/Chinese Documentation](README.md)
@@ -17,7 +19,7 @@ One API to integrate six comment systems, with iframe sandbox isolation — read
 
 ## Quick Start
 
-[Live Demo](https://huazie.github.io/demo/)
+[Live Demo](https://blog.huazie.com/demo/#card-demo) · [SDK Document](https://huazie.github.io/demo/#card-quickstart)
 
 ### Three Steps
 
