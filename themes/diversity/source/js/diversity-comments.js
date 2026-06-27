@@ -21,6 +21,41 @@
         }
     })();
 
+    // ================================================================
+    // OAuth 回调检测（必须在 iframe 判别之前执行）
+    // ================================================================
+    // GitHub OAuth 会将整个页面重定向到 /comments/?giscus=... 或 /comments/?utterances=... 或 /comments/?code=...
+    // 这时页面是顶层页面（isInIframe = false），需要强制重定向回父页面
+    // 注意：此检测必须在 if (isInIframe) 判别之前执行
+    (function detectOAuthCallback() {
+        try {
+            var url = new URL(global.location.href);
+            var params = url.searchParams;
+            var giscusSession = params.get('giscus');
+            var utterancesSession = params.get('utterances');
+
+            if (!giscusSession && !utterancesSession) return;
+
+            // Giscus OAuth 回调：?giscus=
+            // Giscus client.js 通过 JSON.parse() 读取，需要 JSON 格式
+            if (giscusSession) {
+                localStorage.setItem('giscus-session', JSON.stringify(giscusSession));
+            }
+
+            // Utterances OAuth 回调：?utterances=
+            // Utterances 直接读取字符串，不需要 JSON.stringify
+            if (utterancesSession) {
+                localStorage.setItem('utterances-session', utterancesSession);
+            }
+
+            // 重定向回父页面
+            var parentUrl = localStorage.getItem('diversity:parentUrl');
+            if (parentUrl) {
+                global.location.href = parentUrl;
+            }
+        } catch (e) {}
+    })();
+
     // Iframe 侧：标记是否已收到父页面的配置
     var _parentConfigReceived = false;
     var _activeComment = null; // 跟踪当前激活的评论系统
@@ -341,11 +376,6 @@
                 }
             }
 
-            // 将父页面元数据写入 conf（供评论系统使用）
-            if (parentConfig._parentOrigin !== undefined) {
-                window.conf = window.conf || {};
-                window.conf._parentOrigin = parentConfig._parentOrigin;
-            }
         }
 
         /**
@@ -680,22 +710,25 @@
      * 
      * @example
      * DiversityComments.init({
-     *   server: 'https://comments.example.com',
      *   container: '#my-comments',
      *   comments: {
-     *     pageId: '/posts/my-article',
+     *     pageId: '/comments',
      *     style: 'tabs',
-     *     active: 'giscus',
-     *     lazyload: true
+     *     active: 'utterances',
+     *     lazyload: true,
+     *     storage: true,
+     *     darkMode: 'auto',
+     *     lang: 'zh-CN'
      *   },
-     *   giscus: {
+     *   utterances: {
      *     enable: true,
      *     repo: 'user/repo',
-     *     repo_id: 'R_xxx',
-     *     category: 'Announcements',
-     *     category_id: 'DIC_xxx'
+     *     issue_term: 'pathname'
      *   },
-     *   onReady: function() { console.log('Comments ready!'); }
+     *   // 其他主题配置
+     *   onReady: function(iframe, active) { console.log('评论已就绪，当前:', active); },
+     *   onActiveChange: function(active) { console.log('切换到:', active); },
+     *   onError: function(msg) { console.error('加载失败: ' + msg); }
      * });
      */
     DiversityComments.init = function(options) {
@@ -713,6 +746,13 @@
             _onError('未找到挂载容器元素: ' + _config.container);
             return;
         }
+
+        // 记录父页面 URL 到 localStorage，供 OAuth 回调重定向使用
+        // Giscus/Utterances 会将整个页面重定向到回调地址，
+        // detectOAuthCallback 会通过 diversity:parentUrl 找回父页面地址
+        try {
+            localStorage.setItem('diversity:parentUrl', global.location.href);
+        } catch (e) {}
 
         // 创建 iframe
         _createIframe();
@@ -775,9 +815,6 @@
                 }
             }
             
-            // 添加父页面 origin 供 OAuth 回调使用
-            initConfig._parentOrigin = global.location.origin;
-            
             _sendToIframe({
                 type: 'diversity:init',
                 config: initConfig
@@ -837,13 +874,6 @@
 
             case 'diversity:error':
                 _onError(data.message || 'Unknown error');
-                break;
-
-            case 'diversity:oauth-callback':
-                // Gitalk/Gitment OAuth 回调，刷新 iframe 以加载评论
-                if (_iframe) {
-                    _iframe.src = _iframe.src;
-                }
                 break;
 
             default:
