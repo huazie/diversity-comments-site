@@ -69,27 +69,125 @@
         return result;
     }
 
+    // ================================================================
+    // 默认配置（单一来源）
+    // 所有上下文（父页面和 iframe）共享同一套默认配置
+    // ================================================================
+    var DEFAULT_CONFIGS = {
+        server: '',
+        container: '#diversity-comments',
+        comments: {
+            style: 'tabs',
+            active: 'utterances',
+            lazyload: true,
+            storage: true,
+            darkMode: 'auto',
+            lang: 'zh-CN',
+            nav: {
+                utterances: { text: 'Utterances', order: 1 },
+                gitalk:    { text: 'Gitalk',    order: 2 },
+                giscus:    { text: 'Giscus',    order: 3 },
+                twikoo:    { text: 'Twikoo',    order: 4 },
+                gitment:   { text: 'Gitment',   order: 5 },
+                waline:    { text: 'Waline',    order: 6 }
+            }
+        },
+        utterances: {
+            enable: true,
+            loading: true,
+            repo: 'user-name/repo-name',
+            issue_term: 'pathname',
+            theme: 'github-light',
+            dark: 'github-dark'
+        },
+        gitalk: {
+            enable: true,
+            loading: true,
+            github_id: 'user-name',
+            repo: 'repo-name',
+            client_id: 'your-client-id',
+            client_secret: 'your-client-secret',
+            admin_user: '',
+            distraction_free_mode: true,
+            issue_term: 'pathname',
+            language: ''
+        },
+        giscus: {
+            enable: true,
+            loading: true,
+            repo: 'your-username/your-repo-name',
+            repo_id: 'R_xxx',
+            category: 'Announcements',
+            category_id: 'DIC_xxx',
+            mapping: 'pathname',
+            term: '',
+            strict: 0,
+            reactions_enabled: 1,
+            emit_metadata: 0,
+            theme: 'light',
+            dark: 'dark',
+            lang: '',
+            input_position: 'bottom',
+            data_loading: 'lazy'
+        },
+        twikoo: {
+            enable: true,
+            loading: true,
+            env_id: 'xxx',
+            path: '',
+            lang: 'zh-CN',
+            js: 'https://cdn.jsdelivr.net/npm/twikoo@1.7.9/dist/twikoo.min.js'
+        },
+        gitment: {
+            enable: true,
+            loading: true,
+            owner: 'user-name',
+            repo: 'repo-name',
+            client_id: 'your-client-id',
+            client_secret: 'your-client-secret',
+            issue_term: 'pathname',
+            id: '',
+            title: '',
+            link: '',
+            desc: '',
+            labels: [],
+            per_page: 20,
+            max_comment_height: 250
+        },
+        waline: {
+            enable: true,
+            loading: true,
+            server_url: 'https://your-waline-server.netlify.app/.netlify/functions/comment',
+            js_url: 'https://unpkg.com/@waline/client@v3/dist/waline.js',
+            css_url: 'https://unpkg.com/@waline/client@v3/dist/waline.css',
+            path: 'pathname',
+            lang: 'zh-CN',
+            emoji: null,
+            dark: '.dark-theme',
+            comment_sorting: 'latest',
+            meta: ['nick', 'mail', 'link'],
+            required_meta: [],
+            login: 'enable',
+            word_limit: false,
+            page_size: 10,
+            search: false,
+            no_copyright: false,
+            no_rss: false,
+            reaction: false
+        },
+        onReady: null,
+        onError: null,
+        onActiveChange: null        
+    };
+
     /**
      * 获取默认配置
      * @returns {Object} 默认配置
      */
     function getDefaultConfig() {
-        return {
-            server: '',
-            container: '#diversity-comments',
-            comments: {
-                pageId: global.location.pathname,
-                style: 'tabs',
-                active: 'utterances',
-                lazyload: true,
-                storage: true,
-                darkMode: 'auto',
-                lang: 'zh-CN',
-                nav: null
-            },
-            onReady: null,
-            onError: null
-        };
+        var config = deepMerge({}, DEFAULT_CONFIGS);
+        config.comments.pageId = global.location.pathname;
+        return config;
     }
 
     // ================================================================
@@ -155,117 +253,6 @@
          * 实际使用时，配置应通过父页面 DiversityComments.init() 传入
          * 各评论系统默认 enable: false，需要启用时设置为 true
          */
-        var DEFAULT_CONFIGS = {
-            comments: {
-                style: 'tabs',
-                active: 'utterances',
-                lazyload: true,
-                storage: true,
-                nav: {
-                    utterances: { text: 'Utterances', order: 1 },
-                    gitalk:    { text: 'Gitalk',    order: 2 },
-                    giscus:    { text: 'Giscus',    order: 3 },
-                    twikoo:    { text: 'Twikoo',    order: 4 },
-                    gitment:   { text: 'Gitment',   order: 5 },
-                    waline:    { text: 'Waline',    order: 6 }
-                }
-            },
-            // Utterances - 基于 GitHub Issues 的轻量评论系统
-            // https://utteranc.es
-            utterances: {
-                enable: true,
-                loading: true,
-                repo: 'user-name/repo-name',
-                issue_term: 'pathname',
-                theme: 'github-light',
-                dark: 'github-dark'
-            },
-            // Gitalk - 基于 GitHub Issue 和 Preact 开发的现代评论插件
-            // https://gitalk.github.io
-            gitalk: {
-                enable: true,
-                loading: true,
-                github_id: '',
-                repo: '',
-                client_id: '',
-                client_secret: '',
-                admin_user: '',
-                distraction_free_mode: true,
-                issue_term: 'pathname',
-                language: ''
-            },
-            // Giscus - 利用 GitHub Discussions 实现的评论系统
-            // https://giscus.app/
-            giscus: {
-                enable: true,
-                loading: true,
-                repo: 'your-username/your-repo-name',
-                repo_id: '',
-                category: '',
-                category_id: '',
-                mapping: 'pathname',
-                term: '',
-                strict: 0,
-                reactions_enabled: 1,
-                emit_metadata: 0,
-                theme: 'light',
-                dark: 'dark',
-                lang: '',
-                input_position: 'bottom',
-                data_loading: 'lazy'
-            },
-            // Twikoo - 简洁、安全、免费的静态网站评论系统
-            // https://twikoo.js.org
-            twikoo: {
-                enable: true,
-                loading: true,
-                env_id: '',
-                path: '',
-                lang: 'zh-CN',
-                js: 'https://cdn.jsdelivr.net/npm/twikoo@1.7.9/dist/twikoo.min.js'
-            },
-            // Gitment - 基于 GitHub Issues 的评论系统
-            // https://github.com/imsun/gitment
-            gitment: {
-                enable: true,
-                loading: true,
-                owner: '',
-                repo: '',
-                client_id: '',
-                client_secret: '',
-                issue_term: 'pathname',
-                id: '',
-                title: '',
-                link: '',
-                desc: '',
-                labels: [],
-                per_page: 20,
-                max_comment_height: 250
-            },
-            // Waline - 简单但功能强大的评论系统
-            // https://waline.js.org/
-            waline: {
-                enable: true,
-                loading: true,
-                server_url: 'https://your-waline-server.netlify.app/.netlify/functions/comment',
-                js_url: 'https://unpkg.com/@waline/client@v3/dist/waline.js',
-                css_url: 'https://unpkg.com/@waline/client@v3/dist/waline.css',
-                path: 'pathname',
-                lang: 'zh-CN',
-                emoji: null,
-                dark: '.dark-theme',
-                comment_sorting: 'latest',
-                meta: ['nick', 'mail', 'link'],
-                required_meta: [],
-                login: 'enable',
-                word_limit: false,
-                page_size: 10,
-                search: false,
-                no_copyright: false,
-                no_rss: false,
-                reaction: false
-            }
-        };
 
         // <diversity-config> 元素的配置更新方法
         function applyConfigToElement(config, configName) {
@@ -962,10 +949,26 @@
     };
 
     /**
+     * 获取 SDK 默认配置（深拷贝，不会污染内部默认值）
+     *
+     * 可用于在初始化前查看所有可配置字段及其默认值，
+     * 或基于默认配置进行扩展：
+     *
+     *     var config = DiversityComments.getDefaultConfig();
+     *     config.utterances.repo = 'my-name/my-repo';
+     *     DiversityComments.init(config);
+     *
+     * @returns {Object} 默认配置的深拷贝
+     */
+    DiversityComments.getDefaultConfig = function() {
+        return getDefaultConfig();
+    };
+
+    /**
      * SDK 版本号
      * @type {string}
      */
-    DiversityComments.version = '2.0.0';
+    DiversityComments.version = '1.0.0';
 
     // 导出到全局
     global.DiversityComments = DiversityComments;

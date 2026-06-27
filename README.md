@@ -74,6 +74,18 @@ DiversityComments.init({
 });
 ```
 
+
+💡 **推荐做法**：启用多个评论系统时，推荐先调用 `DiversityComments.getDefaultConfig()` 获取默认配置，再覆盖所需字段。配置会与 SDK 默认值保持同步，详见 [demo 页面](source/demo/index.html)。
+
+```javascript
+var config = DiversityComments.getDefaultConfig();
+config.comments.pageId = '/posts/hello-world';
+config.utterances.enable = true;
+config.utterances.repo = 'user/repo';
+// ... 其他配置
+DiversityComments.init(config);
+```
+
 ## 项目结构
 
 ```

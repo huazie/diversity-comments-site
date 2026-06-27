@@ -98,7 +98,7 @@
                     <pre><code>DiversityComments.init({
     container: '#diversity-comments',
     comments: {
-        pageId: '/posts/hello-world',
+        pageId: '/comments',
         style: 'tabs',
         active: 'utterances',
         lazyload: true,
@@ -278,19 +278,19 @@
                     <h3 style="font-size:0.95rem;margin-bottom:8px;">Utterances</h3>
                     <pre><code>utterances: {
     enable: true,
-    repo: 'owner/comments-repo',           // 必填：GitHub 仓库
+    repo: 'user-name/repo-name',            // 必填：GitHub 用户名/GitHub 评论仓库
     issue_term: 'pathname',                 // Issue 映射方式
     theme: 'github-light',                  // 浅色主题
-    dark: 'github-dark'                    // 深色主题
+    dark: 'github-dark'                     // 深色主题
 }</code></pre>
 
                     <h3 style="font-size:0.95rem;margin:20px 0 8px;">Gitalk</h3>
                     <pre><code>gitalk: {
     enable: true,
-    github_id: 'your-github-id',           // 必填：GitHub 用户名
-    repo: 'comment-repo',                   // 必填：评论仓库
-    client_id: 'YOUR_CLIENT_ID',           // 必填：OAuth App Client ID
-    client_secret: 'YOUR_CLIENT_SECRET',   // 必填：OAuth App Client Secret
+    github_id: 'user-name',                 // 必填：GitHub 用户名
+    repo: 'repo-name',                      // 必填：GitHub 评论仓库
+    client_id: 'your-client-id',            // 必填：OAuth App Client ID
+    client_secret: 'your-client-secret',    // 必填：OAuth App Client Secret
     admin_user: 'your-github-id',
     distraction_free_mode: true,
     proxy: 'https://your-oauth-proxy.com/api/auth',
@@ -300,8 +300,8 @@
                     <h3 style="font-size:0.95rem;margin:20px 0 8px;">Giscus</h3>
                     <pre><code>giscus: {
     enable: true,
-    repo: 'owner/comments-repo',           // 必填
-    repo_id: 'R_xxxxxxxxxxxxx',            // 必填：从 giscus.app 获取
+    repo: 'your-username/your-repo-name',   // 必填：GitHub 用户名/GitHub 评论仓库
+    repo_id: 'R_xxxxxxxxxxxxx',             // 必填：从 giscus.app 获取
     category: 'Announcements',              // 必填
     category_id: 'DIC_xxxxxxxxxxxxxxxxx',   // 必填
     mapping: 'pathname',
@@ -321,10 +321,10 @@
                     <h3 style="font-size:0.95rem;margin:20px 0 8px;">Gitment</h3>
                     <pre><code>gitment: {
     enable: true,
-    owner: 'your-github-id',               // 必填
-    repo: 'comment-repo',                   // 必填
-    client_id: 'YOUR_CLIENT_ID',           // 必填
-    client_secret: 'YOUR_CLIENT_SECRET',   // 必填
+    owner: 'user-name',                     // 必填：GitHub 用户名
+    repo: 'repo-name',                      // 必填：GitHub 评论仓库
+    client_id: 'your-client-id',            // 必填：OAuth App Client ID
+    client_secret: 'your-client-secret',    // 必填：OAuth App Client Secret
     issue_term: 'pathname',
     proxy: 'https://your-oauth-proxy.com/api/auth',
     per_page: 20
@@ -567,93 +567,66 @@
 
         // ---- 初始化 ----
         if (window.DiversityComments) {
-            DiversityComments.init({
-                container: '#diversity-comments',
-                comments: {
-                    pageId: '/comments',
-                    style: 'tabs',
-                    active: 'utterances',
-                    lazyload: true,
-                    storage: true,
-                    darkMode: window.__initDarkMode__ || 'light',
-                    lang: 'zh-CN'
-                },
-                utterances: {
-                    enable: true,
-                    loading: true,
-                    repo: 'huazie/hexo-theme-diversity',
-                    issue_term: 'pathname',
-                    theme: 'github-light',
-                    dark: 'github-dark'
-                },
-                gitalk: {
-                    enable: true,
-                    loading: true,
-                    github_id: 'huazie',
-                    repo: 'hexo-theme-diversity',
-                    client_id: 'Ov23liUeEbTbvL4TtFLI',
-                    client_secret: '625f6af43748eb4a6a27a9111d252155e88c836e',
-                    admin_user: 'huazie',
-                    distraction_free_mode: true,
-                    proxy: 'https://huazie-oauth.netlify.app/api/auth',
-                    issue_term: 'pathname'
-                },
-                giscus: {
-                    enable: true,
-                    loading: true,
-                    repo: 'huazie/hexo-theme-diversity',
-                    repo_id: 'R_kgDOLxZw-w',
-                    category: 'Announcements',
-                    category_id: 'DIC_kwDOLxZw-84CiJXv',
-                    mapping: 'pathname',
-                    strict: 0,
-                    reactions_enabled: 1,
-                    emit_metadata: 0,
-                    theme: 'light',
-                    dark: 'dark',
-                    input_position: 'bottom'
-                },
-                twikoo: {
-                    enable: true,
-                    loading: true,
-                    env_id: 'https://huazie.netlify.app/.netlify/functions/twikoo',
-                    lang: 'zh-CN'
-                },
-                gitment: {
-                    enable: true,
-                    loading: true,
-                    owner: 'huazie',
-                    repo: 'hexo-theme-diversity',
-                    client_id: 'Ov23li7WIKTIa0F9GJtZ',
-                    client_secret: '7f068a3fa7852d2ded8742833939eac385d957b6',
-                    issue_term: 'pathname',
-                    proxy: 'https://huazie-oauth.netlify.app/api/auth'
-                },
-                waline: {
-                    enable: true,
-                    loading: true,
-                    server_url: 'https://huazie-waline.netlify.app/.netlify/functions/comment',
-                    path: 'pathname',
-                    lang: 'zh-CN',
-                    dark: '.dark-theme',
-                    reaction: true
-                },
-                onReady: function(iframe, active) {
-                    console.log('[demo] onReady, active:', active);
-                    if (active) currentActive = active;
-                    syncApiButtons(currentActive);
-                    updateStatus('ready', '评论系统已就绪 · 当前: ' + currentActive);
-                },
-                onActiveChange: function(active) {
-                    console.log('[demo] onActiveChange, active:', active);
-                    if (active) currentActive = active;
-                    syncApiButtons(currentActive);
-                    updateStatus('ready', '已切换到 ' + currentActive);
-                },
-                onError: function(msg) {
-                    updateStatus('error', '错误: ' + msg);
-                }
-            });
+            var config = DiversityComments.getDefaultConfig();
+
+            // 基础配置（覆盖默认值）
+            config.comments.pageId = '/comments';
+            config.comments.darkMode = window.__initDarkMode__ || 'light';
+
+            // Utterances
+            config.utterances.enable = true;
+            config.utterances.repo = 'huazie/hexo-theme-diversity';
+
+            // Gitalk
+            config.gitalk.enable = true;
+            config.gitalk.github_id = 'huazie';
+            config.gitalk.repo = 'hexo-theme-diversity';
+            config.gitalk.client_id = 'Ov23liUeEbTbvL4TtFLI';
+            config.gitalk.client_secret = '625f6af43748eb4a6a27a9111d252155e88c836e';
+            config.gitalk.admin_user = 'huazie';
+
+            // Giscus
+            config.giscus.enable = true;
+            config.giscus.repo = 'huazie/hexo-theme-diversity';
+            config.giscus.repo_id = 'R_kgDOLxZw-w';
+            config.giscus.category = 'Announcements';
+            config.giscus.category_id = 'DIC_kwDOLxZw-84CiJXv';
+
+            // Twikoo
+            config.twikoo.enable = true;
+            config.twikoo.env_id = 'https://huazie.netlify.app/.netlify/functions/twikoo';
+
+            // Gitment
+            config.gitment.enable = true;
+            config.gitment.owner = 'huazie';
+            config.gitment.repo = 'hexo-theme-diversity';
+            config.gitment.client_id = 'Ov23li7WIKTIa0F9GJtZ';
+            config.gitment.client_secret = '7f068a3fa7852d2ded8742833939eac385d957b6';
+
+            // Waline
+            config.waline.enable = true;
+            config.waline.server_url = 'https://huazie-waline.netlify.app/.netlify/functions/comment';
+            config.waline.dark = '.dark-theme';
+            config.waline.reaction = true;
+
+            // 回调函数
+            config.onReady = function(iframe, active) {
+                console.log('[demo] onReady, active:', active);
+                if (active) currentActive = active;
+                syncApiButtons(currentActive);
+                updateStatus('ready', '评论系统已就绪 · 当前: ' + currentActive);
+            };
+            config.onActiveChange = function(active) {
+                console.log('[demo] onActiveChange, active:', active);
+                if (active) currentActive = active;
+                syncApiButtons(currentActive);
+                updateStatus('ready', '已切换到 ' + currentActive);
+            };
+            config.onError = function(msg) {
+                updateStatus('error', '错误: ' + msg);
+            };
+
+            DiversityComments.init(config);
             updateStatus('loading', '正在加载评论系统...');
         }
 

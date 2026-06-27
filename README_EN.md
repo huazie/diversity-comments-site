@@ -74,6 +74,18 @@ DiversityComments.init({
 });
 ```
 
+
+💡 **Recommended**: When enabling multiple comment systems, it's recommended to call `DiversityComments.getDefaultConfig()` first to get the default config, then override the needed fields. This keeps your config in sync with SDK defaults. See [demo page](source/demo/index.html) for a complete example.
+
+```javascript
+var config = DiversityComments.getDefaultConfig();
+config.comments.pageId = '/posts/hello-world';
+config.utterances.enable = true;
+config.utterances.repo = 'user/repo';
+// ... other config
+DiversityComments.init(config);
+```
+
 ## Project Structure
 
 ```

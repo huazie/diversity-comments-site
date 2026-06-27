@@ -147,15 +147,15 @@ giscus:
 
   # GitHub 仓库 ID（从 giscus.app 获取或调用 API）
   # Github repository id
-  repo_id: xxx
+  repo_id: R_xxx
 
   # Discussion 分类名称
   # Github discussion category
-  category:
+  category: Announcements
 
   # Discussion 分类 ID
   # Github discussion category id
-  category_id:
+  category_id: DIC_xxx
 
   # Discussion 匹配规则
   # Available values: pathname | url | title | og:title | specific
@@ -253,11 +253,11 @@ gitment:
 
   # GitHub OAuth App Client ID
   # GitHub Application Client ID
-  client_id: xxx
+  client_id: your-client-id
 
   # GitHub OAuth App Client Secret
   # GitHub Application Client Secret
-  client_secret: xxx
+  client_secret: your-client-secret
 
   # Issue 匹配规则
   # Available values: pathname | url | title | other string
