@@ -572,6 +572,13 @@
                     if (data.config) {
                         // 标记已收到父页面配置
                         _parentConfigReceived = true;
+
+                        // 记录父页面 URL 到 localStorage，供 OAuth 回调重定向使用
+                        // Giscus/Utterances 会将整个页面重定向到回调地址，
+                        // detectOAuthCallback 会通过 diversity:parentUrl 找回父页面地址
+                        try {
+                            localStorage.setItem('diversity:parentUrl', data.parentUrl);
+                        } catch (e) {}
                         
                         setupIframeStyles();
                         // 确保所有评论系统的 <diversity-config> 元素存在
@@ -747,13 +754,6 @@
             return;
         }
 
-        // 记录父页面 URL 到 localStorage，供 OAuth 回调重定向使用
-        // Giscus/Utterances 会将整个页面重定向到回调地址，
-        // detectOAuthCallback 会通过 diversity:parentUrl 找回父页面地址
-        try {
-            localStorage.setItem('diversity:parentUrl', global.location.href);
-        } catch (e) {}
-
         // 创建 iframe
         _createIframe();
     };
@@ -798,6 +798,9 @@
         _container.innerHTML = '';
         _container.appendChild(_iframe);
 
+        // 记录父页面 URL
+        var parentUrl = global.location.href;
+
         // 监听 iframe 加载完成
         _iframe.addEventListener('load', function() {
             // 向 iframe 发送初始化配置
@@ -817,7 +820,8 @@
             
             _sendToIframe({
                 type: 'diversity:init',
-                config: initConfig
+                config: initConfig,
+                parentUrl: parentUrl
             });
         });
 
