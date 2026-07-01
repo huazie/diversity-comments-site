@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gitalk 授权回调</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background: #f5f5f5;
+        }
+        .message {
+            text-align: center;
+            padding: 32px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+            max-width: 400px;
+        }
+        .message h2 { margin: 0 0 16px; font-size: 20px; color: #24292e; }
+        .message p { margin: 0 0 24px; color: #586069; font-size: 14px; }
+        .spinner {
+            width: 32px; height: 32px;
+            border: 3px solid #e1e4e8;
+            border-top-color: #0366d6;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="message" id="msg">
+        <div class="spinner"></div>
+        <h2>授权处理中…</h2>
+        <p>正在完成 GitHub 授权，请稍候</p>
+    </div>
+<script>
+(function() {
+    var url = new URL(location.href);
+    var code = url.searchParams.get('code');
+    var error = url.searchParams.get('error');
+    var errorDesc = url.searchParams.get('error_description') || '';
+    // 系统标识：gitalk | gitment，通过 URL 参数传入
+    var sys = url.searchParams.get('system') || 'gitalk';
+    var msgPrefix = sys === 'gitment' ? 'diversity:gitment' : 'diversity:gitalk';
+
+    var msgEl = document.getElementById('msg');
+
+    // 用户拒绝授权或发生错误
+    if (error) {
+        msgEl.innerHTML = '<h2>授权被拒绝</h2><p>' + escapeHtml(errorDesc || error) + '</p>';
+        if (window.opener) {
+            window.opener.postMessage({ type: msgPrefix + ':oauth:error', error: error, error_description: errorDesc }, '*');
+            setTimeout(window.close, 1500);
+        }
+        return;
+    }
+
+    // 未获取到 code
+    if (!code) {
+        msgEl.innerHTML = '<h2>授权失败</h2><p>未获取到授权码（code 参数缺失）</p>';
+        if (window.opener) {
+            window.opener.postMessage({ type: msgPrefix + ':oauth:error', error: 'no_code' }, '*');
+            setTimeout(window.close, 2000);
+        }
+        return;
+    }
+
+    // 成功获取 code，需要用代理交换为 access_token
+    // 从 opener（iframe）读取对应系统的 proxy/client_id/client_secret
+    var proxy = '';
+    var clientId = '';
+    var clientSecret = '';
+    try {
+        var sysConf = window.opener && window.opener.conf && window.opener.conf[sys];
+        if (sysConf) {
+            proxy = sysConf.proxy || '';
+            clientId = sysConf.client_id || '';
+            clientSecret = sysConf.client_secret || '';
+        }
+    } catch (e) {
+        // cross-origin 可能报错，但 callback.html 与博客同域，通常不会
+    }
+
+    if (!proxy) {
+        // 无法获取 proxy，直接把 code 传给 iframe（降级处理）
+        msgEl.innerHTML = '<h2>⚠️ 无法交换令牌</h2><p>未配置代理地址，尝试直接传递授权码…</p>';
+        if (window.opener) {
+            window.opener.postMessage({ type: msgPrefix + ':oauth:code', code: code }, '*');
+            setTimeout(window.close, 800);
+        }
+        return;
+    }
+
+    // 调用代理接口，把 code 交换为 access_token
+    // GitHub OAuth 代理标准格式：POST proxy with JSON body { code, client_id, client_secret }
+    msgEl.innerHTML = '<div class="spinner"></div><h2>正在换取访问令牌…</h2><p>请稍候</p>';
+
+    var postBody = {
+        code: code,
+        client_id: clientId,
+        client_secret: clientSecret
+    };
+
+    fetch(proxy, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(postBody)
+    })
+        .then(function(resp) {
+            if (!resp.ok) throw new Error('Proxy returned ' + resp.status);
+            return resp.json();
+        })
+        .then(function(data) {
+            var token = data.access_token || data.accessToken || data.token;
+            if (!token) {
+                throw new Error('Proxy response missing access_token: ' + JSON.stringify(data));
+            }
+            if (window.opener) {
+                msgEl.innerHTML = '<h2>✅ 授权成功</h2><p>正在完成登录…</p>';
+                window.opener.postMessage({ type: msgPrefix + ':oauth:token', token: token }, '*');
+                setTimeout(window.close, 800);
+            }
+        })
+        .catch(function(err) {
+            msgEl.innerHTML = '<h2>⚠️ 令牌交换失败</h2><p style="color:#e36209;font-size:12px;">' +
+                escapeHtml(String(err)) + '<br>尝试直接传递授权码…</p>';
+            if (window.opener) {
+                window.opener.postMessage({ type: msgPrefix + ':oauth:code', code: code }, '*');
+                setTimeout(window.close, 1500);
+            }
+        });
+
+    function escapeHtml(str) {
+        var div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+})();
+</script>
+</body>
+</html>

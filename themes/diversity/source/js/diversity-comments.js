@@ -56,6 +56,168 @@
         } catch (e) {}
     })();
 
+    // ================================================================
+    // 统一 OAuth Login Hijack（Gitalk + Gitment）
+    // ================================================================
+    // 背景：Gitalk v1.x 和 Gitment 在 iframe 内 OAuth 登录会失败
+    //   - Gitalk：缺少 proxy 配置时默认走 iframe OAuth，CSP 阻止
+    //   - Gitment：window.open() + 默认 gh-oauth.imsun.net 代理已失效
+    //
+    // 解决方案：统一劫持登录按钮 → window.open() 弹窗到 GitHub OAuth
+    //   → callback.html?system=xxx → postMessage 回传 token
+    //   → iframe 存 localStorage → location.reload() 完成登录
+    //
+    // 该模块同时运行在父页面和 iframe 中：
+    //   - 父页面侧：转发 callback.html 的 postMessage 到 iframe
+    //   - iframe 侧：劫持登录按钮 + 接收 token 完成登录
+    // ================================================================
+    (function() {
+        // 各系统的 token 存储 key
+        var TOKEN_KEYS = {
+            gitalk: 'GT_ACCESS_TOKEN',
+            gitment: 'gitment-comments-token'
+        };
+        // OAuth scope
+        var OAUTH_SCOPES = {
+            gitalk: 'repo,read:user',
+            gitment: 'public_repo'
+        };
+        var HIJACK_DATASET = {
+            gitalk: 'gtHijacked',
+            gitment: 'gmHijacked'
+        };
+        var WRAP_SELECTORS = {
+            gitalk: '.gitalk-wrap',
+            gitment: '.gitment-wrap'
+        };
+
+        // 如果不在 iframe 中，这个模块只负责转发 OAuth 消息（父页面侧在 _handleIframeMessage 中处理）
+        if (!isInIframe) return;
+
+        // === iframe 侧逻辑 ===
+        var _hijackActive = {};       // 跟踪每个系统的 MutationObserver 是否已启动
+        var _hijackObservers = {};    // 存储 MutationObserver 实例
+
+        // 尝试劫持指定系统的登录按钮
+        function tryHijack(system) {
+            var wrap = document.querySelector(WRAP_SELECTORS[system]);
+            if (!wrap) return;
+
+            // 扫描并劫持现有按钮
+            scanButtons(system, wrap);
+
+            // 如果 observer 已存在，跳过
+            if (_hijackActive[system]) return;
+            _hijackActive[system] = true;
+
+            var observer = new MutationObserver(function(mutations) {
+                for (var i = 0; i < mutations.length; i++) {
+                    if (mutations[i].addedNodes.length) {
+                        scanButtons(system, wrap);
+                        break;
+                    }
+                }
+            });
+            observer.observe(wrap, { childList: true, subtree: true });
+            _hijackObservers[system] = observer;
+        }
+
+        // 扫描并劫持未处理的登录按钮（幂等）
+        function scanButtons(system, container) {
+            var dsKey = HIJACK_DATASET[system];
+            var selector = {
+                gitalk: '.gt-btn-login',
+                gitment: '.gitment-editor-login-link'
+            }[system];
+            var buttons = container.querySelectorAll(selector);
+            for (var i = 0; i < buttons.length; i++) {
+                var btn = buttons[i];
+                // 跳过已标记的按钮
+                if (btn.dataset[dsKey]) continue;
+                btn.dataset[dsKey] = '1';
+                // 在捕获阶段拦截，不修改 DOM（防止破坏 Preact reconciliation）
+                btn.addEventListener('click', (function(sys) {
+                    return function(e) {
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                        openOAuthPopup(sys);
+                    };
+                })(system), true);
+            }
+        }
+
+        // 弹窗 OAuth 授权
+        function openOAuthPopup(system) {
+            var cfg = conf[system];
+            if (!cfg || !cfg.client_id) {
+                console.warn('[Diversity OAuth] ' + system + '.client_id not configured');
+                return;
+            }
+            var clientId = cfg.client_id;
+            var redirectUri = cfg.redirect_uri || cfg.redirect_url || (window.location.origin + '/callback.html?system=' + system);
+            var scope = OAUTH_SCOPES[system] || 'public_repo';
+
+            var oauthUrl = 'https://github.com/login/oauth/authorize' +
+                '?client_id=' + encodeURIComponent(clientId) +
+                '&redirect_uri=' + encodeURIComponent(redirectUri) +
+                '&scope=' + encodeURIComponent(scope) +
+                '&allow_signup=true';
+
+            var popup = window.open(
+                oauthUrl,
+                'github_oauth_' + system,
+                'width=880,height=700,scrollbars=yes,resizable=yes,toolbar=no,location=yes'
+            );
+
+            if (!popup) {
+                alert('弹窗被浏览器拦截了，请允许弹窗后重试，或将 ' + window.location.hostname + ' 加入白名单。');
+            }
+        }
+
+        // 监听来自 callback.html 的 postMessage（来自父页面的转发）
+        global.addEventListener('message', function(event) {
+            if (!event.data || typeof event.data !== 'object') return;
+            var data = event.data;
+            if (!data.type) return;
+
+            var system = null;
+            if (data.type.indexOf('diversity:gitalk:oauth') === 0) {
+                system = 'gitalk';
+            } else if (data.type.indexOf('diversity:gitment:oauth') === 0) {
+                system = 'gitment';
+            } else {
+                return;
+            }
+
+            if (data.error) {
+                console.warn('[Diversity OAuth] ' + system + ' error:', data.error, data.error_description || '');
+                return;
+            }
+
+            var authCode = data.code || data.token;
+            if (!authCode) return;
+
+            var storageKey = TOKEN_KEYS[system];
+            try {
+                localStorage.setItem(storageKey, authCode);
+            } catch (e) {
+                console.error('[Diversity OAuth] Failed to store token:', e);
+            }
+
+            // 存储 token 后刷新页面，让评论系统从 localStorage 读取
+            window.location.reload();
+        });
+
+        // 在 page:loaded 之后启动劫持（评论系统的 wrap 容器此时才渲染）
+        document.addEventListener('page:loaded', function() {
+            // 稍小延迟，确保各 .ejs 的渲染逻辑执行完成
+            setTimeout(function() {
+                tryHijack('gitalk');
+                tryHijack('gitment');
+            }, 0);
+        });
+    })();
+
     // Iframe 侧：标记是否已收到父页面的配置
     var _parentConfigReceived = false;
     var _activeComment = null; // 跟踪当前激活的评论系统
@@ -836,6 +998,8 @@
     function _sendToIframe(data) {
         if (_iframe && _iframe.contentWindow) {
             _iframe.contentWindow.postMessage(data, '*');
+        } else {
+            console.warn('[diversity-comments.js] Cannot send to iframe: _iframe=', _iframe);
         }
     }
 
@@ -846,6 +1010,16 @@
     function _handleIframeMessage(event) {
         if (!event.data || typeof event.data !== 'object') return;
         var data = event.data;
+
+        // 转发 Gitalk/Gitment OAuth 回调消息（来自 callback.html 弹窗）
+        // callback.html 用 window.opener.postMessage 发给父页面，父页面需要转发给 iframe
+        if (data.type && (
+            data.type.indexOf('diversity:gitalk:oauth') === 0 ||
+            data.type.indexOf('diversity:gitment:oauth') === 0
+        )) {
+            _sendToIframe(data);
+            return;
+        }
 
         switch (data.type) {
             case 'diversity:ready':
