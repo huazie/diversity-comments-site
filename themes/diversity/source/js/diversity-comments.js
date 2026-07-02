@@ -174,12 +174,104 @@
             }
         }
 
-        // 监听来自 callback.html 的 postMessage（来自父页面的转发）
+        // ================================================================
+        // 监听来自 callback.html 的 code（通过 postMessage 或 localStorage）
+        // callback.html 只托管 code，token 交换完全在 iframe 侧完成（安全）
+        // ================================================================
+        var OAUTH_STORAGE_KEY = 'diversity_oauth_pending';
+
+        // 用 proxy 把 code 交换为 access_token（在 iframe 侧，可安全读取 conf[sys]）
+        function exchangeCodeForToken(system, code) {
+            var cfg;
+            try { cfg = conf[system]; } catch (e) { cfg = null; }
+            if (!cfg || !cfg.proxy || !cfg.client_id || !cfg.client_secret) {
+                console.warn('[Diversity OAuth] ' + system + ' proxy/client_id/client_secret not configured, storing code directly');
+                localStorage.setItem(TOKEN_KEYS[system], code);
+                localStorage.removeItem(OAUTH_STORAGE_KEY);
+                window.location.reload();
+                return;
+            }
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', cfg.proxy, true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.onload = function() {
+                localStorage.removeItem(OAUTH_STORAGE_KEY);
+                try {
+                    if (xhr.status === 200) {
+                        var resp = JSON.parse(xhr.responseText);
+                        var token = resp.access_token || resp.accessToken || resp.token;
+                        if (token) {
+                            localStorage.setItem(TOKEN_KEYS[system], token);
+                            window.location.reload();
+                            return;
+                        }
+                        console.warn('[Diversity OAuth] Proxy response missing access_token:', resp);
+                    } else {
+                        console.warn('[Diversity OAuth] Proxy returned ' + xhr.status + ': ' + xhr.responseText);
+                    }
+                } catch (e) {
+                    console.error('[Diversity OAuth] Token exchange failed:', e);
+                }
+                // 交换失败，把 code 作为降级 token 存储
+                localStorage.setItem(TOKEN_KEYS[system], code);
+                window.location.reload();
+            };
+            xhr.onerror = function() {
+                localStorage.removeItem(OAUTH_STORAGE_KEY);
+                console.warn('[Diversity OAuth] Proxy request failed, storing code directly');
+                localStorage.setItem(TOKEN_KEYS[system], code);
+                window.location.reload();
+            };
+            xhr.send(JSON.stringify({
+                code: code,
+                client_id: cfg.client_id,
+                client_secret: cfg.client_secret
+            }));
+        }
+
+        function handleOAuthResult(system, data) {
+            if (data.error) {
+                console.warn('[Diversity OAuth] ' + system + ' error:', data.error, data.error_description || '');
+                localStorage.removeItem(OAUTH_STORAGE_KEY);
+                return;
+            }
+
+            var authCode = data.code || data.token;
+            if (!authCode) return;
+
+            // 如果已经有完整 token，直接存
+            if (data.token) {
+                localStorage.setItem(TOKEN_KEYS[system], data.token);
+                localStorage.removeItem(OAUTH_STORAGE_KEY);
+                window.location.reload();
+                return;
+            }
+
+            // 只有 code，在 iframe 侧交换 token（安全，client_secret 不出域）
+            exchangeCodeForToken(system, authCode);
+        }
+
+        // 方式 1：postMessage（普通浏览器，callback.html 通过 window.opener 发送）
         global.addEventListener('message', function(event) {
             if (!event.data || typeof event.data !== 'object') return;
             var data = event.data;
             if (!data.type) return;
 
+            // hint 消息（callback.html 写入 localStorage 后发来的提醒）
+            // 从 localStorage 读取完整数据，忽略 postMessage 中的 code
+            if (data.type === 'diversity:gitalk:oauth:hint' || data.type === 'diversity:gitment:oauth:hint') {
+                var stored = localStorage.getItem(OAUTH_STORAGE_KEY);
+                if (stored) {
+                    try {
+                        var parsed = JSON.parse(stored);
+                        handleOAuthResult(parsed.system || 'gitalk', parsed);
+                    } catch (e) {}
+                }
+                return;
+            }
+
+            // 带完整 token/code 的消息
             var system = null;
             if (data.type.indexOf('diversity:gitalk:oauth') === 0) {
                 system = 'gitalk';
@@ -189,23 +281,19 @@
                 return;
             }
 
-            if (data.error) {
-                console.warn('[Diversity OAuth] ' + system + ' error:', data.error, data.error_description || '');
-                return;
-            }
+            handleOAuthResult(system, data);
+        });
 
-            var authCode = data.code || data.token;
-            if (!authCode) return;
-
-            var storageKey = TOKEN_KEYS[system];
+        // 方式 2：storage 事件（微信等 weak opener 环境，无 postMessage）
+        // 当 callback.html 在同 origin 写入 localStorage 时，iframe 会收到此事件
+        global.addEventListener('storage', function(event) {
+            if (event.key !== OAUTH_STORAGE_KEY || !event.newValue) return;
             try {
-                localStorage.setItem(storageKey, authCode);
-            } catch (e) {
-                console.error('[Diversity OAuth] Failed to store token:', e);
-            }
-
-            // 存储 token 后刷新页面，让评论系统从 localStorage 读取
-            window.location.reload();
+                var parsed = JSON.parse(event.newValue);
+                if (parsed.system && (parsed.code || parsed.error)) {
+                    handleOAuthResult(parsed.system, parsed);
+                }
+            } catch (e) {}
         });
 
         // 在 page:loaded 之后启动劫持（评论系统的 wrap 容器此时才渲染）
