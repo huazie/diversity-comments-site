@@ -126,8 +126,8 @@
         function scanButtons(system, container) {
             var dsKey = HIJACK_DATASET[system];
             var selector = {
-                gitalk: '.gt-btn-login',
-                gitment: '.gitment-editor-login-link'
+                gitalk: '.gt-avatar-github, .gt-btn-login, .gt-action-login',
+                gitment: '.gitment-editor-login-link, .gitment-editor-avatar'
             }[system];
             var buttons = container.querySelectorAll(selector);
             for (var i = 0; i < buttons.length; i++) {
