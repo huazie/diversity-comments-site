@@ -19,29 +19,3 @@
 <%- css('css/dc-style.css') %>
 
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
-
-<% 
-// 判断当前页面是否是 comments 页面（iframe 评论页面）
-var isCommentsPage = page.layout === 'comments' || page.path.indexOf('comments/') === 0;
-%>
-<% if (isCommentsPage) { %>
-<script>
-// Iframe 评论页面：拦截第一次 page:loaded 事件，等待父页面配置
-(function() {
-    var parentConfigReceived = false;
-    window.addEventListener('page:loaded', function(event) {
-        if (!parentConfigReceived) {
-            event.stopImmediatePropagation();
-            return false;
-        }
-    }, true);
-    
-    // 监听父页面配置消息
-    window.addEventListener('message', function(event) {
-        if (event.data && event.data.type === 'diversity:init') {
-            parentConfigReceived = true;
-        }
-    });
-})();
-</script>
-<% } %>
