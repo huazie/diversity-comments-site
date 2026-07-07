@@ -1,6 +1,5 @@
 :root {
     --primary: #667eea;
-    --primary-dark: #5a67d8;
     --accent: #764ba2;
     --bg: #f5f7fa;
     --card-bg: #fff;
@@ -36,22 +35,23 @@ body.theme-dark {
     --article-h2: #e2e8f0;
 }
 body.theme-dark .sidebar { background: #13161f; border-right-color: var(--border); }
-body.theme-dark .sidebar-nav a:hover { background: #1e2235; }
-body.theme-dark .sidebar-nav a.active { background: #1e2235; }
+body.theme-dark .sidebar-nav a:hover,
+body.theme-dark .sidebar-nav a.active { background: var(--card-header-hover); }
 body.theme-dark .card-header { background: var(--card-header-bg); }
 body.theme-dark .card-header:hover { background: var(--card-header-hover); }
-body.theme-dark .btn { background: #1a1d27; border-color: var(--border); color: var(--text); }
+body.theme-dark .btn { background: var(--card-bg); border-color: var(--border); color: var(--text); }
 body.theme-dark .btn:hover { background: #252a3a; border-color: var(--primary); color: var(--primary); }
 body.theme-dark .btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
 body.theme-dark .btn-danger { border-color: #fc8181; color: #fc8181; }
 body.theme-dark .btn-danger:hover { background: #e53e3e; color: #fff; }
 body.theme-dark .status-bar { background: var(--status-bg); }
-body.theme-dark .field-table th { background: #151822; }
+body.theme-dark .field-table th { background: var(--card-header-bg); }
 body.theme-dark .field-table code { background: #2d3348; color: #a0b4f8; }
 body.theme-dark .feature-card { background: var(--card-bg); box-shadow: var(--card-shadow); }
 body.theme-dark .feature-card:hover { box-shadow: var(--card-shadow-hover); }
 body.theme-dark .overlay { background: rgba(0,0,0,0.5); }
-body.theme-dark .menu-toggle { background: var(--card-bg); color: var(--text); }
+body.theme-dark .menu-toggle { background: var(--card-bg); }
+body.theme-dark:not(.sidebar-open) .menu-toggle { color: var(--text); }
 body.theme-dark .article h2 { color: var(--article-h2); }
 body.theme-dark pre { background: var(--pre-bg); }
 body.theme-dark .sidebar-header { border-bottom-color: var(--border); }
@@ -174,7 +174,7 @@ body {
 
 /* ========== Hero ========== */
 .hero {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+    background: var(--hero-gradient);
     color: #fff;
     padding: 48px 40px;
     border-radius: var(--radius);
@@ -215,12 +215,12 @@ body {
     background: var(--card-bg);
     border-radius: var(--radius);
     padding: 24px 20px;
-    box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+    box-shadow: var(--card-shadow);
     transition: transform 0.2s, box-shadow 0.2s;
 }
 .feature-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    box-shadow: var(--card-shadow-hover);
 }
 .feature-card .icon {
     width: 40px; height: 40px;
@@ -236,12 +236,12 @@ body {
 .card {
     background: var(--card-bg);
     border-radius: var(--radius);
-    box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+    box-shadow: var(--card-shadow);
     margin-bottom: 24px;
     overflow: hidden;
 }
 .card-header {
-    background: #fafbfc;
+    background: var(--card-header-bg);
     padding: 14px 24px;
     border-bottom: 1px solid var(--border);
     font-weight: 600;
@@ -253,7 +253,7 @@ body {
     user-select: none;
     transition: background 0.2s;
 }
-.card-header:hover { background: #f0f2f8; }
+.card-header:hover { background: var(--card-header-hover); }
 .card-header-left { display: flex; align-items: center; gap: 8px; }
 .card-toggle-icon {
     width: 20px; height: 20px;
@@ -271,14 +271,14 @@ body {
     padding: 8px 18px;
     border: 1px solid var(--border);
     border-radius: 8px;
-    background: #fff;
+    background: var(--card-bg);
     color: var(--text);
     font-size: 0.88rem;
     cursor: pointer;
     transition: all 0.15s;
     white-space: nowrap;
 }
-.btn:hover { background: #f0f2f8; border-color: var(--primary); color: var(--primary); }
+.btn:hover { background: var(--card-header-hover); border-color: var(--primary); color: var(--primary); }
 .btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
 .btn-danger { border-color: #fc8181; color: #e53e3e; }
 .btn-danger:hover { background: #e53e3e; color: #fff; }
@@ -287,7 +287,7 @@ body {
 .status-bar {
     display: flex; align-items: center; gap: 12px;
     padding: 10px 16px;
-    background: #f7f8fc;
+    background: var(--status-bg);
     border-radius: 8px;
     font-size: 0.85rem;
     color: var(--text-light);
@@ -301,7 +301,7 @@ body {
 
 /* ---- 代码 ---- */
 pre {
-    background: #1e1e2e;
+    background: var(--pre-bg);
     color: #cdd6f4;
     border-radius: 8px;
     padding: 16px 20px;
@@ -325,7 +325,7 @@ pre code { font-family: "SF Mono","Fira Code","Consolas",monospace; }
     border-bottom: 1px solid var(--border);
     vertical-align: top;
 }
-.field-table th { background: #f7f8fc; font-weight: 600; color: var(--text); }
+.field-table th { background: var(--status-bg); font-weight: 600; color: var(--text); }
 .field-table code {
     background: #eef0ff; padding: 2px 6px; border-radius: 4px;
     font-size: 0.8rem; color: var(--primary);
@@ -335,7 +335,7 @@ pre code { font-family: "SF Mono","Fira Code","Consolas",monospace; }
 
 /* ---- 文章 ---- */
 .article { padding: 30px 24px; }
-.article h2 { font-size: 1.5rem; margin-bottom: 12px; color: #1a202c; }
+.article h2 { font-size: 1.5rem; margin-bottom: 12px; color: var(--article-h2); }
 .article time { color: #a0aec0; font-size: 0.85rem; display: block; margin-bottom: 20px; }
 .article p { margin-bottom: 14px; color: var(--text-light); }
 #diversity-comments {
@@ -363,10 +363,14 @@ pre code { font-family: "SF Mono","Fira Code","Consolas",monospace; }
     color: #fff;
     border: none;
     border-radius: 8px;
-    padding: 8px 12px;
+    padding: 0;
     font-size: 1.2rem;
     cursor: pointer;
     box-shadow: 0 2px 10px rgba(102,126,234,0.4);
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
 }
 .overlay {
     display: none;
@@ -400,7 +404,28 @@ pre code { font-family: "SF Mono","Fira Code","Consolas",monospace; }
     .sidebar.open { transform: translateX(0); }
     .main { margin-left: 0; }
     .content-wrap { padding: 16px; }
-    .menu-toggle { display: block !important; }
+    .menu-toggle {
+        display: flex !important;
+        transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    /* sidebar 展开时，菜单按钮跟随滑入侧栏右侧*/
+    body.sidebar-open .menu-toggle,
+    body.theme-dark.sidebar-open .menu-toggle {
+        left: 228px;
+        background: var(--card-header-hover) !important;
+        color: var(--primary) !important;
+        box-shadow: none;
+        width: 40px;
+        height: 40px;
+        line-height: 1;
+        padding: 0 0 2px 0;
+        border-radius: 6px;
+    }
+    body.sidebar-open .menu-toggle:hover,
+    body.theme-dark.sidebar-open .menu-toggle:hover {
+        background: var(--card-header-hover) !important;
+        color: var(--primary) !important;
+    }
     .hero { padding: 28px 20px; border-radius: 8px; }
     .hero h1 { font-size: 1.4rem; }
     .hero p { font-size: 0.92rem; }

@@ -420,8 +420,18 @@
         function toggleSidebar() {
             var sb = document.getElementById('sidebar');
             var ov = document.getElementById('overlay');
+            var btn = document.querySelector('.menu-toggle');
+            var opening = !sb.classList.contains('open');
             sb.classList.toggle('open');
             ov.classList.toggle('show');
+            document.body.classList.toggle('sidebar-open');
+            if (opening) {
+                btn.textContent = '\u2716';
+                btn.setAttribute('aria-label', '关闭目录');
+            } else {
+                btn.textContent = '\u2630';
+                btn.setAttribute('aria-label', '打开目录');
+            }
         }
 
         // ---- 目录高亮 ----
