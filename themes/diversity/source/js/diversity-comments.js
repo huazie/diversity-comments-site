@@ -138,6 +138,9 @@
                 // 在捕获阶段拦截，不修改 DOM（防止破坏 Preact reconciliation）
                 btn.addEventListener('click', (function(sys) {
                     return function(e) {
+                        // 已登录则不劫持，让原生行为生效（显示用户面板/登出）
+                        var tk = sys === 'gitalk' ? TOKEN_KEYS.gitalk : (sys === 'gitment' ? TOKEN_KEYS.gitment : null);
+                        if (tk && localStorage.getItem(tk)) return;
                         e.preventDefault();
                         e.stopImmediatePropagation();
                         openOAuthPopup(sys);
