@@ -195,7 +195,7 @@
                     <h3 style="font-size:0.95rem;margin:20px 0 8px;">评论通用配置 (comments)</h3>
                     <table class="field-table">
                         <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
-                        <tr><td><code>pageId</code></td><td>string</td><td class="default">location.pathname</td><td>页面唯一标识，区分不同页面的评论</td></tr>
+                        <tr><td><code>pageId</code></td><td>string</td><td class="default">空（按各插件模式取父页面值）</td><td>页面唯一标识。传入则所有评论系统统一使用此值；未传则各插件按 issue_term/mapping/path 模式从父页面取 pathname/url/title</td></tr>
                         <tr><td><code>style</code></td><td>string</td><td class="default">'tabs'</td><td>显示模式：<code>tabs</code> 选项卡 / <code>dropdown</code> 下拉菜单</td></tr>
                         <tr><td><code>active</code></td><td>string</td><td class="default">'utterances'</td><td>默认激活的评论系统</td></tr>
                         <tr><td><code>lazyload</code></td><td>boolean</td><td class="default">true</td><td>进入视口才加载评论</td></tr>
@@ -283,6 +283,7 @@
     theme: 'github-light',                  // 浅色主题
     dark: 'github-dark'                     // 深色主题
 }</code></pre>
+                    <a class="config-link" href="https://github.com/huazie/diversity-plugins/tree/main/packages/hexo-comments-utterances" target="_blank" rel="noopener">更多配置 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H8M17 7V16"/></svg></a>
 
                     <h3 style="font-size:0.95rem;margin:20px 0 8px;">Gitalk</h3>
                     <pre><code>gitalk: {
@@ -296,6 +297,7 @@
     proxy: 'https://your-oauth-proxy.com/api/auth',
     issue_term: 'pathname'
 }</code></pre>
+                    <a class="config-link" href="https://github.com/huazie/diversity-plugins/tree/main/packages/hexo-comments-gitalk" target="_blank" rel="noopener">更多配置 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H8M17 7V16"/></svg></a>
 
                     <h3 style="font-size:0.95rem;margin:20px 0 8px;">Giscus</h3>
                     <pre><code>giscus: {
@@ -310,6 +312,7 @@
     dark: 'dark',
     input_position: 'bottom'
 }</code></pre>
+                    <a class="config-link" href="https://github.com/huazie/diversity-plugins/tree/main/packages/hexo-comments-giscus" target="_blank" rel="noopener">更多配置 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H8M17 7V16"/></svg></a>
 
                     <h3 style="font-size:0.95rem;margin:20px 0 8px;">Twikoo</h3>
                     <pre><code>twikoo: {
@@ -317,6 +320,7 @@
     env_id: 'https://your-twikoo.vercel.app',  // 必填：云函数地址
     lang: 'zh-CN'
 }</code></pre>
+                    <a class="config-link" href="https://github.com/huazie/diversity-plugins/tree/main/packages/hexo-comments-twikoo" target="_blank" rel="noopener">更多配置 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H8M17 7V16"/></svg></a>
 
                     <h3 style="font-size:0.95rem;margin:20px 0 8px;">Gitment</h3>
                     <pre><code>gitment: {
@@ -329,6 +333,7 @@
     proxy: 'https://your-oauth-proxy.com/api/auth',
     per_page: 20
 }</code></pre>
+                    <a class="config-link" href="https://github.com/huazie/diversity-plugins/tree/main/packages/hexo-comments-gitment" target="_blank" rel="noopener">更多配置 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H8M17 7V16"/></svg></a>
 
                     <h3 style="font-size:0.95rem;margin:20px 0 8px;">Waline</h3>
                     <pre><code>waline: {
@@ -339,6 +344,7 @@
     reaction: true,
     page_size: 10
 }</code></pre>
+                    <a class="config-link" href="https://github.com/huazie/diversity-plugins/tree/main/packages/hexo-comments-waline" target="_blank" rel="noopener">更多配置 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H8M17 7V16"/></svg></a>
                 </div>
             </div>
 
@@ -410,7 +416,7 @@
     </div>
 
     <div class="footer">
-        Diversity Comments SDK v1.0.0 · 支持 6 种评论系统
+        Diversity Comments SDK v1.0.0 · MIT License · by <a href="https://github.com/huazie" target="_blank" rel="noopener">Huazie</a>
     </div>
 
     <script src="./../js/diversity-comments.js"></script>
@@ -580,7 +586,7 @@
             var config = DiversityComments.getDefaultConfig();
 
             // 基础配置（覆盖默认值）
-            config.comments.pageId = '/comments';
+            //config.comments.pageId = '/comments';
             config.comments.darkMode = window.__initDarkMode__ || 'light';
 
             // Utterances

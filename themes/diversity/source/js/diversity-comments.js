@@ -474,7 +474,7 @@
      */
     function getDefaultConfig() {
         var config = deepMerge({}, DEFAULT_CONFIGS);
-        config.comments.pageId = global.location.pathname;
+        // pageId 不自动设，由用户显式传入；未传时各插件按自身模式从父页面取值
         return config;
     }
 
@@ -812,6 +812,84 @@
             document.dispatchEvent(event);
         }
 
+        /**
+         * 解析各评论系统的页面标识
+         * - pageId 显式传入 → 关键词模式（pathname/url/title）统一用 pageId
+         * - 未传 pageId → 按各插件的模式从父页面取值
+         * - 数字 / 自定义值 → 不处理（用户显式指定，不覆盖）
+         */
+        function _resolvePageIdentifier(data) {
+            var pageId = data.config.comments && data.config.comments.pageId;
+            var parentPathname = data.parentPathname || '';
+            var parentUrl = data.parentUrl || '';
+            var parentTitle = data.parentTitle || '';
+            var parentOgTitle = data.parentOgTitle || '';
+
+            // 按模式从父页面取值（pageId 为空时）
+            function resolveByMode(mode) {
+                if (mode === 'pathname') return parentPathname;
+                if (mode === 'url') return parentUrl;
+                if (mode === 'title') return parentTitle;
+                if (mode === 'og:title') return parentOgTitle;
+                return mode;
+            }
+
+            // 判断是否为关键词模式
+            function isKeyword(term) {
+                return term === 'pathname' || term === 'url' || term === 'title' || term === 'og:title';
+            }
+
+            var configs = parseConfigElements();
+
+            // 各插件规则：field 表示直接替换该字段；special 表示需要特殊处理
+            var rules = [
+                { name: 'gitalk',    field: 'issue_term' },
+                { name: 'gitment',   field: 'issue_term' },
+                { name: 'utterances', field: 'issue_term' },
+                { name: 'waline',    field: 'path' },
+                { name: 'giscus',    special: 'giscus' },
+                { name: 'twikoo',    special: 'twikoo' }
+            ];
+
+            rules.forEach(function(rule) {
+                var cfg = configs[rule.name];
+                if (!cfg || !cfg.enable) return;
+
+                var identifier = null;
+
+                if (rule.field) {
+                    var val = cfg[rule.field];
+                    if (isKeyword(val)) {
+                        identifier = pageId || resolveByMode(val);
+                        cfg[rule.field] = identifier;
+                        updateConfigElement(rule.name, cfg);
+                    } else {
+                        identifier = val;
+                    }
+                } else if (rule.special === 'giscus') {
+                    var mapping = cfg.mapping;
+                    if (isKeyword(mapping)) {
+                        identifier = pageId || resolveByMode(mapping);
+                        cfg.mapping = 'specific';
+                        cfg.term = identifier;
+                        updateConfigElement(rule.name, cfg);
+                    } else {
+                        identifier = cfg.term || mapping;
+                    }
+                } else if (rule.special === 'twikoo') {
+                    if (!cfg.path) {
+                        identifier = pageId || parentPathname;
+                        cfg.path = identifier;
+                        updateConfigElement(rule.name, cfg);
+                    } else {
+                        identifier = cfg.path;
+                    }
+                }
+
+                console.log('[Diversity] ' + rule.name + ' identifier:', identifier);
+            });
+        }
+
         // ---- Iframe 侧：监听父页面消息 ----
         global.addEventListener('message', function(event) {
             if (!event.data || typeof event.data !== 'object') return;
@@ -838,6 +916,8 @@
                         ensureCommentConfigs();
                         // 更新配置（支持 comments + 各评论系统配置）
                         applyCommentsConfig(data.config);
+                        // 解析页面标识：pageId 优先，否则按各插件模式从父页面取值
+                        _resolvePageIdentifier(data);
                         // 根据 style 决定显示 tabs 还是 dropdown
                         var style = (data.config.comments && data.config.comments.style) || 'tabs';
                         switchThemeUI(style);
@@ -951,7 +1031,7 @@
      * @param {string} [options.server] - Diversity Comments 服务地址
      * @param {string} [options.container='#diversity-comments'] - 挂载容器的 CSS 选择器
      * @param {Object} [options.comments] - 评论通用配置
-     * @param {string} [options.comments.pageId] - 页面唯一标识
+     * @param {string} [options.comments.pageId] - 页面唯一标识。传入则所有评论系统统一使用此值；未传则各插件按 issue_term/mapping/path 模式从父页面取 pathname/url/title
      * @param {string} [options.comments.style='tabs'] - 显示模式: 'tabs' | 'dropdown'
      * @param {string} [options.comments.active='utterances'] - 默认激活的评论系统
      * @param {boolean} [options.comments.lazyload=true] - 是否懒加载
@@ -1051,8 +1131,15 @@
         _container.innerHTML = '';
         _container.appendChild(_iframe);
 
-        // 记录父页面 URL
+        // 记录父页面信息
         var parentUrl = global.location.href;
+        var parentPathname = global.location.pathname;
+        var parentTitle = global.document.title;
+        var parentOgTitle = '';
+        try {
+            var ogMeta = global.document.querySelector('meta[property="og:title"]');
+            if (ogMeta) parentOgTitle = ogMeta.getAttribute('content') || '';
+        } catch (e) {}
 
         // 监听 iframe 加载完成
         _iframe.addEventListener('load', function() {
@@ -1074,7 +1161,10 @@
             _sendToIframe({
                 type: 'diversity:init',
                 config: initConfig,
-                parentUrl: parentUrl
+                parentUrl: parentUrl,
+                parentPathname: parentPathname,
+                parentTitle: parentTitle,
+                parentOgTitle: parentOgTitle
             });
         });
 
