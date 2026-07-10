@@ -652,11 +652,11 @@
         /**
          * 根据主题样式切换显示模式（tabs / dropdown）
          */
-        function switchThemeUI(theme) {
+        function switchThemeUI(style) {
             var tabbable = document.querySelector('.comments-tabbable');
             var dropdown = document.querySelector('.comments-selector');
 
-            if (theme === 'dropdown') {
+            if (style === 'dropdown') {
                 // 隐藏 tabs，显示 dropdown
                 if (tabbable) tabbable.style.display = 'none';
                 if (dropdown) dropdown.style.display = 'block';
@@ -890,6 +890,82 @@
             });
         }
 
+        /**
+         * 根据各评论系统的 enable 标志显示/隐藏对应的 tab 和面板
+         * 全部禁用时显示占位提示
+         * 在 applyCommentsConfig + _resolvePageIdentifier 之后调用
+         */
+        function _updateSystemVisibility() {
+            var configs = parseConfigElements();
+            var systems = ['utterances', 'gitalk', 'giscus', 'twikoo', 'gitment', 'waline'];
+            var hiddenCount = 0;
+            var wrapper = document.querySelector('.comments-tabbable') || document.querySelector('.comments-dropdown');
+
+            systems.forEach(function(name) {
+                var cfg = configs[name];
+                var enabled = cfg && cfg.enable !== false;
+                var panel = document.getElementById('comments-' + name);
+
+                if (enabled) {
+                    // 启用：解锁面板，让 .active class 接管
+                    if (panel) panel.style.display = '';
+                    return;
+                }
+
+                hiddenCount++;
+                // 禁用：隐藏面板和导航项
+                if (panel) { panel.classList.remove('active'); panel.style.display = 'none'; }
+                var tabLink = document.querySelector('.comments-nav-tabs a[data-comments="' + name + '"]');
+                if (tabLink) { tabLink.parentElement.style.display = 'none'; return; }
+                var ddItem = document.querySelector('.comments-dropdown-item[data-value="' + name + '"]');
+                if (ddItem) ddItem.style.display = 'none';
+            });
+
+            // 如果当前 active 被禁用，切换到第一个可见项
+            if (hiddenCount < systems.length) {
+                if (wrapper) wrapper.style.display = '';
+                // tabs
+                var activeTab = document.querySelector('.comments-nav-tabs a.active');
+                if (activeTab && activeTab.parentElement.style.display === 'none') {
+                    var allTabs = document.querySelectorAll('.comments-nav-tabs a[data-comments]');
+                    for (var i = 0; i < allTabs.length; i++) {
+                        if (allTabs[i].parentElement.style.display !== 'none') {
+                            allTabs[i].click();
+                            break;
+                        }
+                    }
+                }
+                // dropdown
+                var activeDD = document.querySelector('.comments-dropdown-item.active');
+                if (activeDD && activeDD.style.display === 'none') {
+                    var allDD = document.querySelectorAll('.comments-dropdown-item[data-value]');
+                    for (var j = 0; j < allDD.length; j++) {
+                        if (allDD[j].style.display !== 'none') {
+                            allDD[j].click();
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // 全部禁用：隐藏容器 + 占位提示
+            var placeholder = document.getElementById('diversity-empty-hint');
+            if (hiddenCount === systems.length) {
+                if (!placeholder) {
+                    placeholder = document.createElement('div');
+                    placeholder.id = 'diversity-empty-hint';
+                    placeholder.style.cssText = 'text-align:center;padding:60px 20px;color:var(--text-light);font-size:0.92rem;';
+                    placeholder.textContent = '未启用评论';
+                    var wrap = document.querySelector('.comment-inner');
+                    if (wrap) wrap.appendChild(placeholder);
+                }
+                placeholder.style.display = '';
+                if (wrapper) wrapper.style.display = 'none';
+            } else {
+                if (placeholder) placeholder.style.display = 'none';
+            }
+        }
+
         // ---- Iframe 侧：监听父页面消息 ----
         global.addEventListener('message', function(event) {
             if (!event.data || typeof event.data !== 'object') return;
@@ -921,6 +997,8 @@
                         // 根据 style 决定显示 tabs 还是 dropdown
                         var style = (data.config.comments && data.config.comments.style) || 'tabs';
                         switchThemeUI(style);
+                        // 根据 enable 标志显示/隐藏禁用的评论系统（必须在 switchThemeUI 之后，否则会被重置）
+                        _updateSystemVisibility();
                         
                         // ---- 应用父页面传入的暗色模式（必须在 reinitComments 之前！）----
                         var darkMode = (data.config.comments && data.config.comments.darkMode) || 'light';
