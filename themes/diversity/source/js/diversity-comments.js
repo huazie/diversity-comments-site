@@ -1181,17 +1181,9 @@
 
         _ready = false;
 
-        // 构建 iframe URL
+        // 构建 iframe URL（配置由 postMessage 传递，无需 query params）
         var serverUrl = (_config.server || global.location.origin).replace(/\/+$/, '');
-        var commentsConfig = _config.comments || {};
-        var params = [
-            'pageId=' + encodeURIComponent(commentsConfig.pageId || ''),
-            'style=' + encodeURIComponent(commentsConfig.style || 'tabs'),
-            'active=' + encodeURIComponent(commentsConfig.active || 'utterances'),
-            'lang=' + encodeURIComponent(commentsConfig.lang || 'zh-CN')
-        ].join('&');
-
-        var iframeUrl = serverUrl + '/comments/?' + params;
+        var iframeUrl = serverUrl + '/comments/';
 
         // 创建 iframe 元素
         _iframe = document.createElement('iframe');
