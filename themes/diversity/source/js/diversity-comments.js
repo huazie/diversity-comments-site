@@ -370,7 +370,7 @@
             lazyload: true,
             storage: true,
             darkMode: 'auto',
-            lang: 'zh-CN',
+            lang: '',
             nav: {
                 utterances: { text: 'Utterances', order: 1 },
                 gitalk:    { text: 'Gitalk',    order: 2 },
@@ -398,7 +398,7 @@
             admin_user: '',
             distraction_free_mode: true,
             issue_term: 'pathname',
-            language: ''
+            language: 'zh-CN'
         },
         giscus: {
             enable: true,
@@ -414,7 +414,7 @@
             emit_metadata: 0,
             theme: 'light',
             dark: 'dark',
-            lang: '',
+            lang: 'zh-CN',
             input_position: 'bottom',
             data_loading: 'lazy'
         },
@@ -440,7 +440,9 @@
             desc: '',
             labels: [],
             per_page: 20,
-            max_comment_height: 250
+            max_comment_height: 250,
+            gitmint: true,
+            lang: 'zh-CN'
         },
         waline: {
             enable: true,
@@ -609,7 +611,7 @@
                     lazyload: commentsConfig.lazyload !== undefined ? commentsConfig.lazyload : true,
                     storage: commentsConfig.storage !== undefined ? commentsConfig.storage : true,
                     darkMode: commentsConfig.darkMode || 'auto',
-                    lang: commentsConfig.lang || 'zh-CN'
+                    lang: commentsConfig.lang || ''
                 };
 
                 // 处理 nav 配置
@@ -813,6 +815,34 @@
         }
 
         /**
+         * 将 comments.lang 统一应用到各评论系统的 lang/language 字段。
+         * 如果 comments.lang 未设置则跳过（各插件使用自己的默认值）。
+         * 注意：Utterances 无语言配置，不适用。
+         */
+        function _applyCommonLang(data) {
+            var commentsLang = data.config.comments && data.config.comments.lang;
+            if (!commentsLang) return;
+
+            var langMap = {
+                gitalk: 'language',  // Gitalk 用 language
+                giscus: 'lang',
+                twikoo: 'lang',
+                waline: 'lang',
+                gitment: 'lang'
+                // utterances 无语言配置
+            };
+
+            var configs = parseConfigElements();
+            Object.keys(langMap).forEach(function(name) {
+                var cfg = configs[name];
+                if (cfg && cfg.enable !== false) {
+                    cfg[langMap[name]] = commentsLang;
+                    updateConfigElement(name, cfg);
+                }
+            });
+        }
+
+        /**
          * 解析各评论系统的页面标识
          * - pageId 显式传入 → 关键词模式（pathname/url/title）统一用 pageId
          * - 未传 pageId → 按各插件的模式从父页面取值
@@ -994,6 +1024,8 @@
                         applyCommentsConfig(data.config);
                         // 解析页面标识：pageId 优先，否则按各插件模式从父页面取值
                         _resolvePageIdentifier(data);
+                        // 将 comments.lang 统一应用到各评论系统
+                        _applyCommonLang(data);
                         // 根据 style 决定显示 tabs 还是 dropdown
                         var style = (data.config.comments && data.config.comments.style) || 'tabs';
                         switchThemeUI(style);
@@ -1115,7 +1147,7 @@
      * @param {boolean} [options.comments.lazyload=true] - 是否懒加载
      * @param {boolean} [options.comments.storage=true] - 是否记住用户选择
      * @param {string} [options.comments.darkMode='auto'] - 深色模式
-     * @param {string} [options.comments.lang='zh-CN'] - 语言
+     * @param {string} [options.comments.lang=''] - 语言设置，统一覆盖各评论插件的语言配置（Utterances 不支持）；为空则各插件使用自身默认语言
      * @param {Object} [options.comments.nav] - 导航配置
      * @param {Object} [options.utterances] - Utterances 配置
      * @param {Object} [options.gitalk] - Gitalk 配置

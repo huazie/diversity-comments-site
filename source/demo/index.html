@@ -201,7 +201,7 @@
                         <tr><td><code>lazyload</code></td><td>boolean</td><td class="default">true</td><td>进入视口才加载评论</td></tr>
                         <tr><td><code>storage</code></td><td>boolean</td><td class="default">true</td><td>记住用户选择的评论系统</td></tr>
                         <tr><td><code>darkMode</code></td><td>string</td><td class="default">'auto'</td><td>明暗模式：<code>auto</code> / <code>light</code> / <code>dark</code></td></tr>
-                        <tr><td><code>lang</code></td><td>string</td><td class="default">'zh-CN'</td><td>语言设置</td></tr>
+                        <tr><td><code>lang</code></td><td>string</td><td class="default">''</td><td>语言设置，统一覆盖各评论系统的语言配置（Utterances 不支持）；为空则各插件使用自身默认语言</td></tr>
                         <tr><td><code>nav</code></td><td>object</td><td class="default">六系统默认</td><td>导航配置：文字、排序、图标</td></tr>
                     </table>
 
@@ -283,6 +283,7 @@
     theme: 'github-light',                  // 浅色主题
     dark: 'github-dark'                     // 深色主题
 }</code></pre>
+                    <p style="margin:6px 0 0;font-size:0.78rem;color:var(--text-light);">注：Utterances 不支持语言配置，<code>comments.lang</code> 对其无效。</p>
                     <a class="config-link" href="https://github.com/huazie/diversity-plugins/tree/main/packages/hexo-comments-utterances" target="_blank" rel="noopener">更多配置 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H8M17 7V16"/></svg></a>
 
                     <h3 style="font-size:0.95rem;margin:20px 0 8px;">Gitalk</h3>
@@ -295,7 +296,8 @@
     admin_user: 'your-github-id',
     distraction_free_mode: true,
     proxy: 'https://your-oauth-proxy.com/api/auth',
-    issue_term: 'pathname'
+    issue_term: 'pathname',
+    language: 'zh-CN'
 }</code></pre>
                     <a class="config-link" href="https://github.com/huazie/diversity-plugins/tree/main/packages/hexo-comments-gitalk" target="_blank" rel="noopener">更多配置 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H8M17 7V16"/></svg></a>
 
@@ -310,6 +312,7 @@
     reactions_enabled: 1,
     theme: 'light',
     dark: 'dark',
+    lang: 'zh-CN',
     input_position: 'bottom'
 }</code></pre>
                     <a class="config-link" href="https://github.com/huazie/diversity-plugins/tree/main/packages/hexo-comments-giscus" target="_blank" rel="noopener">更多配置 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H8M17 7V16"/></svg></a>
@@ -331,7 +334,8 @@
     client_secret: 'your-client-secret',    // 必填：OAuth App Client Secret
     issue_term: 'pathname',
     proxy: 'https://your-oauth-proxy.com/api/auth',
-    per_page: 20
+    gitmint: true,
+    lang: zh-CN
 }</code></pre>
                     <a class="config-link" href="https://github.com/huazie/diversity-plugins/tree/main/packages/hexo-comments-gitment" target="_blank" rel="noopener">更多配置 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H8M17 7V16"/></svg></a>
 
@@ -586,8 +590,11 @@
             var config = DiversityComments.getDefaultConfig();
 
             // 基础配置（覆盖默认值）
+            //config.server = 'http://127.0.0.1:4000';
             //config.comments.pageId = '/comments';
+            //config.comments.style = 'dropdown';
             config.comments.darkMode = window.__initDarkMode__ || 'light';
+            config.comments.lang = 'zh-CN';
 
             // Utterances
             config.utterances.enable = true;
@@ -600,6 +607,7 @@
             config.gitalk.client_id = 'Ov23liUeEbTbvL4TtFLI';
             config.gitalk.client_secret = '625f6af43748eb4a6a27a9111d252155e88c836e';
             config.gitalk.admin_user = 'huazie';
+            config.gitalk.language = 'en';
 
             // Giscus
             config.giscus.enable = true;
@@ -607,10 +615,12 @@
             config.giscus.repo_id = 'R_kgDOLxZw-w';
             config.giscus.category = 'Announcements';
             config.giscus.category_id = 'DIC_kwDOLxZw-84CiJXv';
+            config.giscus.lang = 'en';
 
             // Twikoo
             config.twikoo.enable = true;
             config.twikoo.env_id = 'https://huazie.netlify.app/.netlify/functions/twikoo';
+            config.twikoo.lang = 'en';
 
             // Gitment
             config.gitment.enable = true;
@@ -618,12 +628,14 @@
             config.gitment.repo = 'hexo-theme-diversity';
             config.gitment.client_id = 'Ov23li7WIKTIa0F9GJtZ';
             config.gitment.client_secret = '7f068a3fa7852d2ded8742833939eac385d957b6';
+            config.gitment.lang = 'en';
 
             // Waline
             config.waline.enable = true;
             config.waline.server_url = 'https://huazie-waline.netlify.app/.netlify/functions/comment';
             config.waline.dark = '.dark-theme';
             config.waline.reaction = true;
+            config.waline.lang = 'en';
 
             // 回调函数
             config.onReady = function(iframe, active) {
