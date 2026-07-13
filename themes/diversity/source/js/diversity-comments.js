@@ -484,6 +484,34 @@
     // Iframe 侧逻辑：监听父页面消息，动态更新 <diversity-config>
     // ================================================================
     if (isInIframe) {
+        // 验证已存储的 OAuth token，无效则清理
+        (function _validateStoredTokens() {
+            var keys = { gitalk: 'GT_ACCESS_TOKEN', gitment: 'gitment-comments-token' };
+            Object.keys(keys).forEach(function(sys) {
+                var token;
+                try { token = localStorage.getItem(keys[sys]); } catch(e) { return; }
+                if (!token) return;
+                // 格式校验：GitHub token 至少 20 字符（排除旧的 code-as-token 遗留）
+                if (token.length < 20) {
+                    try { localStorage.removeItem(keys[sys]); } catch(e) {}
+                    console.log('[Diversity] Cleared invalid ' + sys + ' token (too short)');
+                    return;
+                }
+                // 异步调用 GitHub API 验证
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', 'https://api.github.com/user', true);
+                xhr.setRequestHeader('Authorization', 'token ' + token);
+                xhr.setRequestHeader('Accept', 'application/vnd.github.v3+json');
+                xhr.onload = function() {
+                    if (xhr.status === 401) {
+                        try { localStorage.removeItem(keys[sys]); } catch(e) {}
+                        console.log('[Diversity] Cleared invalid ' + sys + ' token (401 Bad credentials)');
+                    }
+                };
+                xhr.send();
+            });
+        })();
+
         // 拦截第一次 page:loaded 事件，等待父页面配置
         // 注意：必须在捕获阶段（capture phase）拦截，才能阻止事件到达其他监听器
         global.addEventListener('page:loaded', function(event) {
