@@ -149,3 +149,46 @@ theme: diversity
 # 部署部分的设置
 deploy:
   type: ''
+
+# hexo-minify-obfuscator 压缩和混淆配置
+# 详细文档：https://github.com/nicepkg/hexo-minify-obfuscator
+minifyObfuscator:
+  enable: true                                # 总开关，false 则全部禁用
+  previewNotice: true                         # hexo g 时是否显示插件提示信息
+
+  # ---- JS 处理 ----
+  js:
+    # JS 压缩（基于 terser）
+    minify:
+      enable: true                            # 是否压缩 JS
+      exclude: ['*.min.js']                   # 排除的文件（glob 匹配），默认跳过已压缩文件
+      options:
+        compress:
+          drop_console: false                 # 是否移除 console.* 调用
+          drop_debugger: true                 # 是否移除 debugger 语句
+
+    # JS 混淆（基于 javascript-obfuscator）
+    obfuscator:
+      enable: true                            # 是否混淆 JS
+      exclude: ['*.min.js']                   # 排除的文件（glob 匹配）
+      options:
+        compact: true                         # 压缩输出（移除换行和空格）
+        controlFlowFlattening: true           # 控制流扁平化（混淆代码执行顺序）
+        deadCodeInjection: true               # 注入无用代码（增加反编译难度）
+        debugProtection: false                # 调试保护（开启后无法打开开发者工具）
+        disableConsoleOutput: false           # 禁用 console 输出
+        identifierNamesGenerator: hexadecimal # 变量名混淆方式：hexadecimal/mangled
+        renameGlobals: false                  # 是否重命名全局变量（开启可能导致兼容问题）
+        selfDefending: true                   # 自保护（格式化/重命名后无法运行）
+        stringArray: true                     # 提取字符串到数组（增加可读性难度）
+        stringArrayEncoding: ['base64']       # 字符串数组编码方式：base64/rc4
+        stringArrayThreshold: 0.75            # 字符串提取阈值（0~1，越高提取越多）
+
+  # ---- CSS 处理 ----
+  css:
+    enable: true                              # 是否压缩 CSS（基于 clean-css）
+    exclude: []                               # 排除的文件（glob 匹配）
+
+  # ---- HTML 处理 ----
+  html:
+    enable: false                             # 是否压缩 HTML（基于 htmlnano）
