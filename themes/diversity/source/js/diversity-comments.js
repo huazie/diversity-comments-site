@@ -206,7 +206,8 @@
                         var token = resp.access_token || resp.accessToken || resp.token;
                         if (token) {
                             localStorage.setItem(TOKEN_KEYS[system], token);
-                            window.location.reload();
+                            // 触发评论系统重新加载（不走 location.reload，避免 iframe 失联）
+                            try { document.dispatchEvent(new CustomEvent('page:loaded')); } catch(e) {}
                             return;
                         }
                         console.warn('[Diversity OAuth] Proxy response missing access_token:', resp);
@@ -216,15 +217,13 @@
                 } catch (e) {
                     console.error('[Diversity OAuth] Token exchange failed:', e);
                 }
-                // 交换失败，把 code 作为降级 token 存储
-                localStorage.setItem(TOKEN_KEYS[system], code);
-                window.location.reload();
+                // 交换失败，不存储 code 作为降级（code 不是有效 token，token 校验会清掉）
             };
             xhr.onerror = function() {
                 localStorage.removeItem(OAUTH_STORAGE_KEY);
                 console.warn('[Diversity OAuth] Proxy request failed, storing code directly');
                 localStorage.setItem(TOKEN_KEYS[system], code);
-                window.location.reload();
+                try { document.dispatchEvent(new CustomEvent('page:loaded')); } catch(e) {}
             };
             xhr.send(JSON.stringify({
                 code: code,
@@ -247,7 +246,7 @@
             if (data.token) {
                 localStorage.setItem(TOKEN_KEYS[system], data.token);
                 localStorage.removeItem(OAUTH_STORAGE_KEY);
-                window.location.reload();
+                try { document.dispatchEvent(new CustomEvent('page:loaded')); } catch(e) {}
                 return;
             }
 
@@ -312,6 +311,42 @@
     // Iframe 侧：标记是否已收到父页面的配置
     var _parentConfigReceived = false;
     var _activeComment = null; // 跟踪当前激活的评论系统
+
+    // 处理 iframe 刷新后遗留的 pending OAuth code（token 交换在 iframe 侧，安全）
+    function processPendingOAuth() {
+        var stored;
+        try { stored = localStorage.getItem('diversity_oauth_pending'); } catch(e) { return; }
+        if (!stored) return;
+        try {
+            var parsed = JSON.parse(stored);
+            if (parsed.error || !parsed.code) { localStorage.removeItem('diversity_oauth_pending'); return; }
+            var system = parsed.system || 'gitalk';
+            // 从 <diversity-config> 读取 proxy/client_id/client_secret
+            var el = document.querySelector('script.diversity-config[data-system="' + system + '"]');
+            if (!el) return;
+            var cfg;
+            try { cfg = JSON.parse(el.textContent); } catch(e) { return; }
+            if (!cfg.proxy || !cfg.client_id || !cfg.client_secret) {
+                localStorage.removeItem('diversity_oauth_pending');
+                return;
+            }
+            var tokenKey = system === 'gitalk' ? 'GT_ACCESS_TOKEN' : 'gitment-comments-token';
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', cfg.proxy, true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.onload = function() {
+                localStorage.removeItem('diversity_oauth_pending');
+                try {
+                    if (xhr.status === 200) {
+                        var resp = JSON.parse(xhr.responseText);
+                        var token = resp.access_token || resp.accessToken || resp.token;
+                        if (token) localStorage.setItem(tokenKey, token);
+                    }
+                } catch(e) {}
+            };
+            xhr.send(JSON.stringify({ code: parsed.code, client_id: cfg.client_id, client_secret: cfg.client_secret }));
+        } catch(e) {}
+    }
 
     // 脚本加载时即捕获脚本部署地址（document.currentScript 仅在同步执行时可用）
     var _scriptOrigin = (function() {
@@ -511,6 +546,27 @@
                 xhr.send();
             });
         })();
+
+        // 拦截评论正文中的链接点击，通知父页面在新标签页打开
+        document.addEventListener('click', function(e) {
+            var a = e.target;
+            while (a && a !== document && a.nodeName !== 'A') a = a.parentElement;
+            if (!a || a.nodeName !== 'A') return;
+
+            // 跳过 UI 操作区（登录/头像/作者名/操作按钮/编辑器）
+            var uiSelectors = '.gt-header,.gt-meta,.gt-comment-actions,.gitment-comment-header,'
+                + '.gitment-editor-container,.gitment-header-container';
+            if (a.closest(uiSelectors)) return;
+
+            // 只拦截评论正文中的链接（Gitalk: .markdown-body, Gitment: .gitment-markdown / .gitment-comment-body）
+            if (!a.closest('.markdown-body,.gitment-markdown,.gitment-comment-body')) return;
+
+            var href = a.getAttribute('href') || a.href;
+            if (!href || href.charAt(0) === '#' || /^javascript:/i.test(href)) return;
+
+            e.preventDefault();
+            parent.postMessage({ type: 'diversity:navigate', url: href }, '*');
+        }, true);
 
         // 拦截第一次 page:loaded 事件，等待父页面配置
         // 注意：必须在捕获阶段（capture phase）拦截，才能阻止事件到达其他监听器
@@ -1035,6 +1091,8 @@
                 case 'diversity:init':
                     // 父页面初始化配置（v1.0.0 格式）
                     if (data.config) {
+                        // 处理遗留的 pending OAuth code（ifame 刷新后 token 交换尚未完成）
+                        processPendingOAuth();
                         // 标记已收到父页面配置
                         _parentConfigReceived = true;
 
@@ -1359,6 +1417,11 @@
                 if (data.height && _iframe) {
                     _iframe.style.height = data.height + 'px';
                 }
+                break;
+
+            case 'diversity:navigate':
+                // iframe 中点击链接，父页面在新标签页打开
+                if (data.url) { global.open(data.url, '_blank', 'noopener,noreferrer'); }
                 break;
 
             case 'diversity:error':
