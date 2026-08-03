@@ -740,12 +740,12 @@
          */
         function switchThemeUI(style) {
             var tabbable = document.querySelector('.comments-tabbable');
-            var dropdown = document.querySelector('.comments-selector');
+            var dropdown = document.querySelector('.comments-dropdown');
 
             if (style === 'dropdown') {
                 // 隐藏 tabs，显示 dropdown
                 if (tabbable) tabbable.style.display = 'none';
-                if (dropdown) dropdown.style.display = 'block';
+                if (dropdown) dropdown.style.display = '';
             } else {
                 // 默认: tabs 模式
                 if (tabbable) tabbable.style.display = '';
@@ -903,7 +903,7 @@
          * 如果 comments.lang 未设置则跳过（各插件使用自己的默认值）。
          * 注意：Utterances 无语言配置，不适用。
          */
-        function _applyCommonLang(data) {
+        function applyCommonLang(data) {
             var commentsLang = data.config.comments && data.config.comments.lang;
             if (!commentsLang) return;
 
@@ -932,7 +932,7 @@
          * - 未传 pageId → 按各插件的模式从父页面取值
          * - 数字 / 自定义值 → 不处理（用户显式指定，不覆盖）
          */
-        function _resolvePageIdentifier(data) {
+        function resolvePageIdentifier(data) {
             var pageId = data.config.comments && data.config.comments.pageId;
             var parentPathname = data.parentPathname || '';
             var parentUrl = data.parentUrl || '';
@@ -1007,13 +1007,12 @@
         /**
          * 根据各评论系统的 enable 标志显示/隐藏对应的 tab 和面板
          * 全部禁用时显示占位提示
-         * 在 applyCommentsConfig + _resolvePageIdentifier 之后调用
+         * 注意：wrapper 的显隐由 switchThemeUI 控制，此处不再触碰
          */
-        function _updateSystemVisibility() {
+        function updateSystemVisibility() {
             var configs = parseConfigElements();
             var systems = ['utterances', 'gitalk', 'giscus', 'twikoo', 'gitment', 'waline'];
             var hiddenCount = 0;
-            var wrapper = document.querySelector('.comments-tabbable') || document.querySelector('.comments-dropdown');
 
             systems.forEach(function(name) {
                 var cfg = configs[name];
@@ -1027,7 +1026,7 @@
                 }
 
                 hiddenCount++;
-                // 禁用：隐藏面板和导航项
+                // 禁用：隐藏面板和对应的 tab / dropdown 项
                 if (panel) { panel.classList.remove('active'); panel.style.display = 'none'; }
                 var tabLink = document.querySelector('.comments-nav-tabs a[data-comments="' + name + '"]');
                 if (tabLink) { tabLink.parentElement.style.display = 'none'; return; }
@@ -1037,7 +1036,6 @@
 
             // 如果当前 active 被禁用，切换到第一个可见项
             if (hiddenCount < systems.length) {
-                if (wrapper) wrapper.style.display = '';
                 // tabs
                 var activeTab = document.querySelector('.comments-nav-tabs a.active');
                 if (activeTab && activeTab.parentElement.style.display === 'none') {
@@ -1062,7 +1060,7 @@
                 }
             }
 
-            // 全部禁用：隐藏容器 + 占位提示
+            // 全部禁用：隐藏两种 nav + 占位提示
             var placeholder = document.getElementById('diversity-empty-hint');
             if (hiddenCount === systems.length) {
                 if (!placeholder) {
@@ -1074,7 +1072,11 @@
                     if (wrap) wrap.appendChild(placeholder);
                 }
                 placeholder.style.display = '';
-                if (wrapper) wrapper.style.display = 'none';
+                // 隐藏两种 nav
+                var t = document.querySelector('.comments-tabbable');
+                var d = document.querySelector('.comments-dropdown');
+                if (t) t.style.display = 'none';
+                if (d) d.style.display = 'none';
             } else {
                 if (placeholder) placeholder.style.display = 'none';
             }
@@ -1109,14 +1111,14 @@
                         // 更新配置（支持 comments + 各评论系统配置）
                         applyCommentsConfig(data.config);
                         // 解析页面标识：pageId 优先，否则按各插件模式从父页面取值
-                        _resolvePageIdentifier(data);
+                        resolvePageIdentifier(data);
                         // 将 comments.lang 统一应用到各评论系统
-                        _applyCommonLang(data);
+                        applyCommonLang(data);
                         // 根据 style 决定显示 tabs 还是 dropdown
                         var style = (data.config.comments && data.config.comments.style) || 'tabs';
                         switchThemeUI(style);
                         // 根据 enable 标志显示/隐藏禁用的评论系统（必须在 switchThemeUI 之后，否则会被重置）
-                        _updateSystemVisibility();
+                        updateSystemVisibility();
                         
                         // ---- 应用父页面传入的暗色模式（必须在 reinitComments 之前！）----
                         var darkMode = (data.config.comments && data.config.comments.darkMode) || 'light';
