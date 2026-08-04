@@ -146,6 +146,7 @@ diversity-comments-site/
 | Method | Description |
 |--------|-------------|
 | `switchTo(name)` | Switch to a specific comment system |
+| `switchDisplayMode(style)` | Switch display mode (`'tabs'` / `'dropdown'`) |
 | `setColorScheme(scheme)` | Switch light/dark mode |
 | `refresh()` | Refresh current comments |
 | `getConfig()` | Get current config (deep clone) |

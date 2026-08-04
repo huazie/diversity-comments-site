@@ -145,6 +145,7 @@ diversity-comments-site/
 | 方法 | 说明 |
 |------|------|
 | `switchTo(name)` | 切换到指定评论系统 |
+| `switchDisplayMode(style)` | 切换显示模式（`'tabs'` / `'dropdown'`） |
 | `setColorScheme(scheme)` | 切换明暗模式 |
 | `refresh()` | 刷新当前评论 |
 | `getConfig()` | 获取当前配置（深拷贝） |
