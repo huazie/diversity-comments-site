@@ -41,18 +41,18 @@ One API to integrate six comment systems, with iframe sandbox isolation — read
 DiversityComments.init({
     container: '#diversity-comments',
     comments: {
-        pageId: '/posts/hello-world',
-        style: 'tabs',           // 'tabs' | 'dropdown'
+        pageId: '/comments',
+        style: 'tabs',
         active: 'utterances',
         lazyload: true,
-        darkMode: 'auto'         // 'auto' | 'light' | 'dark'
+        storage: true,
+        darkMode: 'auto',
+        lang: 'zh-CN'
     },
     utterances: {
         enable: true,
         repo: 'user/repo',
-        issue_term: 'pathname',
-        theme: 'github-light',
-        dark: 'github-dark'
+        issue_term: 'pathname'
     },
     giscus: {
         enable: true,
@@ -60,18 +60,16 @@ DiversityComments.init({
         repo_id: 'R_xxx',
         category: 'Announcements',
         category_id: 'DIC_xxx',
-        mapping: 'pathname',
-        theme: 'light',
-        dark: 'dark'
+        mapping: 'pathname'
     },
     onReady: function(iframe, active) {
-        console.log('Ready:', active);
+        console.log('评论已就绪，当前:', active);
     },
     onActiveChange: function(active) {
-        console.log('Switched to:', active);
+        console.log('切换到:', active);
     },
     onError: function(msg) {
-        console.error('Error:', msg);
+        console.error('加载失败: ' + msg);
     }
 });
 ```

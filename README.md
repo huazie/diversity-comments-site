@@ -41,18 +41,18 @@
 DiversityComments.init({
     container: '#diversity-comments',
     comments: {
-        pageId: '/posts/hello-world',  // 页面唯一标识
-        style: 'tabs',                  // 'tabs' | 'dropdown'
-        active: 'utterances',           // 默认评论系统
-        lazyload: true,                 // 懒加载
-        darkMode: 'auto'                // 'auto' | 'light' | 'dark'
+        pageId: '/comments',
+        style: 'tabs',
+        active: 'utterances',
+        lazyload: true,
+        storage: true,
+        darkMode: 'auto',
+        lang: 'zh-CN'
     },
     utterances: {
         enable: true,
         repo: 'user/repo',
-        issue_term: 'pathname',
-        theme: 'github-light',
-        dark: 'github-dark'
+        issue_term: 'pathname'
     },
     giscus: {
         enable: true,
@@ -60,9 +60,7 @@ DiversityComments.init({
         repo_id: 'R_xxx',
         category: 'Announcements',
         category_id: 'DIC_xxx',
-        mapping: 'pathname',
-        theme: 'light',
-        dark: 'dark'
+        mapping: 'pathname'
     },
     onReady: function(iframe, active) {
         console.log('评论已就绪，当前:', active);
@@ -71,7 +69,7 @@ DiversityComments.init({
         console.log('切换到:', active);
     },
     onError: function(msg) {
-        console.error('加载失败:', msg);
+        console.error('加载失败: ' + msg);
     }
 });
 ```
