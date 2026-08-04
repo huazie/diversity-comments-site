@@ -44,7 +44,6 @@ body.theme-dark .btn:hover { background: #252a3a; border-color: var(--primary); 
 body.theme-dark .btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
 body.theme-dark .btn-danger { border-color: #fc8181; color: #fc8181; }
 body.theme-dark .btn-danger:hover { background: #e53e3e; color: #fff; }
-body.theme-dark .status-bar { background: var(--status-bg); }
 body.theme-dark .field-table th { background: var(--card-header-bg); }
 body.theme-dark .field-table code { background: #2d3348; color: #a0b4f8; }
 body.theme-dark .feature-card { background: var(--card-bg); box-shadow: var(--card-shadow); }
@@ -283,20 +282,34 @@ body {
 .btn-danger { border-color: #fc8181; color: #e53e3e; }
 .btn-danger:hover { background: #e53e3e; color: #fff; }
 
-/* ---- 状态栏 ---- */
-.status-bar {
-    display: flex; align-items: center; gap: 12px;
-    padding: 10px 16px;
-    background: var(--status-bg);
+/* ---- 状态日志（终端风格）---- */
+.status-log {
+    max-height: 160px;
+    overflow-y: auto;
+    padding: 10px 14px;
+    background: #1e1e2e;
     border-radius: 8px;
-    font-size: 0.85rem;
-    color: var(--text-light);
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 0.78rem;
+    color: #cdd6f4;
+    line-height: 1.7;
     margin-bottom: 16px;
 }
-.status-dot { width: 8px; height: 8px; border-radius: 50%; background: #d0d5dd; }
-.status-dot.ready { background: #48bb78; }
-.status-dot.loading { background: #ed8936; animation: pulse 1s infinite; }
-.status-dot.error { background: #f56565; }
+.status-log::-webkit-scrollbar { width: 4px; }
+.status-log::-webkit-scrollbar-thumb { background: #45475a; border-radius: 2px; }
+.log-line {
+    padding: 1px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.log-icon { margin-right: 6px; font-size: 0.65rem; vertical-align: middle; }
+.log-icon.ready { color: #a6e3a1; }
+.log-icon.loading { color: #fab387; animation: pulse 1s infinite; }
+.log-icon.error { color: #f38ba8; }
+.log-icon.idle { color: #585b70; }
+.log-icon.mode { color: #89b4fa; }
+.log-time { color: #6c7086; margin-right: 8px; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
 /* ---- 代码 ---- */

@@ -361,9 +361,14 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <div class="status-bar">
-                        <span class="status-dot" id="statusDot"></span>
-                        <span id="statusText">未初始化</span>
+                    <div class="status-log" id="statusLog">
+                        <div class="log-line"><span class="log-icon icon-idle">●</span><span class="log-time">--:--:--</span>等待初始化...</div>
+                    </div>
+
+                    <p style="font-weight:600;margin-bottom:10px;">评论显示模式 <code style="font-size:0.82rem;">switchDisplayMode(style)</code></p>
+                    <div class="btn-group">
+                        <button class="btn active" data-style="tabs" onclick="switchDisplayMode('tabs')">📑 选项卡</button>
+                        <button class="btn" data-style="dropdown" onclick="switchDisplayMode('dropdown')">📋 下拉菜单</button>
                     </div>
 
                     <p style="font-weight:600;margin-bottom:10px;">切换评论系统 <code style="font-size:0.82rem;">switchTo(name)</code></p>
@@ -486,12 +491,35 @@
             header.closest('.card').classList.toggle('collapsed');
         }
 
-        // ---- 状态 ----
+        // ---- 状态日志 ----
         var currentActive = 'utterances';
-        function updateStatus(dotClass, text) {
-            document.getElementById('statusDot').className = 'status-dot ' + dotClass;
-            document.getElementById('statusText').textContent = text;
+        var _logMaxLines = 50;
+
+        function _logTime() {
+            var now = new Date();
+            return [now.getHours(), now.getMinutes(), now.getSeconds()]
+                .map(function(n) { return ('0' + n).slice(-2); })
+                .join(':');
         }
+
+        function appendLog(level, msg, isMode) {
+            var log = document.getElementById('statusLog');
+            var line = document.createElement('div');
+            line.className = 'log-line';
+            var iconCls = isMode ? 'mode' : level || 'idle';
+            line.innerHTML = '<span class="log-icon icon-' + iconCls + '">●</span>'
+                + '<span class="log-time">' + _logTime() + '</span>'
+                + msg;
+            log.appendChild(line);
+            log.scrollTop = log.scrollHeight;
+            // 限制行数
+            while (log.children.length > _logMaxLines) {
+                log.removeChild(log.firstChild);
+            }
+        }
+
+        function logStatus(level, text) { appendLog(level, text, false); }
+        function logMode(mode) { appendLog('', '显示模式: ' + (mode === 'dropdown' ? '下拉菜单' : '选项卡'), true); }
 
         // ---- 同步 API 演示按钮状态 ----
         function syncApiButtons(active) {
@@ -510,10 +538,17 @@
             document.body.classList.toggle('theme-dark', isDark);
             localStorage.setItem('demo_theme', scheme);
             updateThemeToggle(scheme);
+            var label = scheme === 'dark' ? '深色' : scheme === 'light' ? '浅色' : '跟随系统';
+            logStatus('ready', '明暗模式 → ' + label);
         }
         function syncSchemeButtons(scheme) {
             document.querySelectorAll('#card-api .btn[data-scheme]').forEach(function(btn) {
                 btn.classList.toggle('active', btn.getAttribute('data-scheme') === scheme);
+            });
+        }
+        function syncDisplayModeButtons(mode) {
+            document.querySelectorAll('#card-api .btn[data-style]').forEach(function(btn) {
+                btn.classList.toggle('active', btn.getAttribute('data-style') === mode);
             });
         }
 
@@ -526,7 +561,17 @@
             currentActive = name;
             DiversityComments.switchTo(name);
             syncApiButtons(name);
-            updateStatus('ready', '已切换到 ' + name);
+        }
+
+        // ---- 切换评论显示模式 ----
+        function switchDisplayMode(style) {
+            if (!window.DiversityComments) {
+                alert('SDK 未加载');
+                return;
+            }
+            DiversityComments.switchDisplayMode(style);
+            syncDisplayModeButtons(style);
+            logMode(style);
         }
 
         // ---- 查看配置 ----
@@ -567,7 +612,7 @@
             if (!window.DiversityComments) return;
             if (confirm('确定要销毁评论实例吗？')) {
                 DiversityComments.destroy();
-                updateStatus('', '已销毁（请刷新页面重新初始化）');
+                logStatus('', '已销毁（请刷新页面重新初始化）');
             }
         }
 
@@ -642,20 +687,22 @@
                 console.log('[demo] onReady, active:', active);
                 if (active) currentActive = active;
                 syncApiButtons(currentActive);
-                updateStatus('ready', '评论系统已就绪 · 当前: ' + currentActive);
+                syncDisplayModeButtons(config.comments.style || 'tabs');
+                logMode(config.comments.style || 'tabs');
+                logStatus('ready', '评论系统已就绪 · 当前: ' + currentActive);
             };
             config.onActiveChange = function(active) {
                 console.log('[demo] onActiveChange, active:', active);
                 if (active) currentActive = active;
                 syncApiButtons(currentActive);
-                updateStatus('ready', '已切换到 ' + currentActive);
+                logStatus('ready', '已切换到 ' + currentActive);
             };
             config.onError = function(msg) {
-                updateStatus('error', '错误: ' + msg);
+                logStatus('error', '错误: ' + msg);
             };
 
             DiversityComments.init(config);
-            updateStatus('loading', '正在加载评论系统...');
+            logStatus('loading', '正在加载评论系统...');
         }
 
         // ---- 主题切换 ----
@@ -669,6 +716,7 @@
             if (window.DiversityComments) {
                 DiversityComments.setColorScheme(scheme);
             }
+            logStatus('ready', '明暗模式 → ' + (isDark ? '深色' : '浅色'));
         }
         function updateThemeToggle(theme) {
             var btn = document.getElementById('themeToggle');

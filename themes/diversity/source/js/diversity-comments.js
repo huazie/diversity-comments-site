@@ -738,18 +738,20 @@
         /**
          * 根据主题样式切换显示模式（tabs / dropdown）
          */
-        function switchThemeUI(style) {
+        function switchDisplayMode(style) {
             var tabbable = document.querySelector('.comments-tabbable');
             var dropdown = document.querySelector('.comments-dropdown');
 
             if (style === 'dropdown') {
-                // 隐藏 tabs，显示 dropdown
                 if (tabbable) tabbable.style.display = 'none';
                 if (dropdown) dropdown.style.display = '';
             } else {
-                // 默认: tabs 模式
                 if (tabbable) tabbable.style.display = '';
                 if (dropdown) dropdown.style.display = 'none';
+            }
+            // 切换模式后重新激活当前评论系统，确保新 nav 的选中状态正确
+            if (_activeComment) {
+                activateCommentTab(_activeComment);
             }
         }
 
@@ -791,21 +793,19 @@
                 setStoredActive(name);
             }
 
-            // 尝试通过 tab 切换
+            // 更新 tab nav（如果有）
             var tabLink = document.querySelector('a[data-comments="' + name + '"][data-toggle="tab"]');
             if (tabLink) {
                 tabLink.click();
-                return;
             }
 
-            // 尝试通过 dropdown 切换
+            // 更新 dropdown nav（如果有）
             var dropdownItem = document.querySelector('.comments-dropdown-item[data-value="' + name + '"]');
             if (dropdownItem) {
                 dropdownItem.click();
-                return;
             }
 
-            // 直接通过 class 切换 pane
+            // 直接通过 class 切换 pane（兜底）
             var allPanes = document.querySelectorAll('.comments-tab-pane, .comments-dropdown-pane');
             for (var i = 0; i < allPanes.length; i++) {
                 allPanes[i].classList.remove('active');
@@ -1007,7 +1007,7 @@
         /**
          * 根据各评论系统的 enable 标志显示/隐藏对应的 tab 和面板
          * 全部禁用时显示占位提示
-         * 注意：wrapper 的显隐由 switchThemeUI 控制，此处不再触碰
+         * 注意：wrapper 的显隐由 switchDisplayMode 控制，此处不再触碰
          */
         function updateSystemVisibility() {
             var configs = parseConfigElements();
@@ -1116,8 +1116,8 @@
                         applyCommonLang(data);
                         // 根据 style 决定显示 tabs 还是 dropdown
                         var style = (data.config.comments && data.config.comments.style) || 'tabs';
-                        switchThemeUI(style);
-                        // 根据 enable 标志显示/隐藏禁用的评论系统（必须在 switchThemeUI 之后，否则会被重置）
+                        switchDisplayMode(style);
+                        // 根据 enable 标志显示/隐藏禁用的评论系统（必须在 switchDisplayMode 之后，否则会被重置）
                         updateSystemVisibility();
                         
                         // ---- 应用父页面传入的暗色模式（必须在 reinitComments 之前！）----
@@ -1177,6 +1177,11 @@
                 case 'diversity:refresh':
                     // 刷新当前评论
                     reinitComments();
+                    break;
+
+                case 'diversity:switchStyle':
+                    // 切换评论显示模式（tabs / dropdown）
+                    if (data.style) switchDisplayMode(data.style);
                     break;
 
                 case 'diversity:getHeight':
@@ -1463,6 +1468,25 @@
         _sendToIframe({
             type: 'diversity:switchTo',
             name: name
+        });
+    };
+
+    /**
+     * 切换评论显示模式（tabs / dropdown）
+     * 
+     * @param {string} style - 风格: 'tabs' | 'dropdown'
+     * 
+     * @example
+     * DiversityComments.switchDisplayMode('dropdown');
+     */
+    DiversityComments.switchDisplayMode = function(style) {
+        if (!_ready) {
+            console.warn('[DiversityComments] 评论系统尚未初始化完成');
+            return;
+        }
+        _sendToIframe({
+            type: 'diversity:switchStyle',
+            style: style
         });
     };
 
