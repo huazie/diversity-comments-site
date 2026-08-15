@@ -49,7 +49,9 @@
             }
 
             // 重定向回父页面
-            var parentUrl = localStorage.getItem('diversity:parentUrl');
+            // 优先取 URL 上的 parent 参数（由 iframe URL 携带，避免多租户/多标签页共享 localStorage 冲突）
+            // 兜底取 localStorage（旧版兼容）
+            var parentUrl = params.get('parent') || localStorage.getItem('diversity:parentUrl');
             if (parentUrl) {
                 global.location.href = parentUrl;
             }
@@ -188,10 +190,8 @@
             var cfg;
             try { cfg = conf[system]; } catch (e) { cfg = null; }
             if (!cfg || !cfg.proxy || !cfg.client_id || !cfg.client_secret) {
-                console.warn('[Diversity OAuth] ' + system + ' proxy/client_id/client_secret not configured, storing code directly');
-                localStorage.setItem(TOKEN_KEYS[system], code);
+                console.warn('[Diversity OAuth] ' + system + ' proxy/client_id/client_secret not configured, cannot exchange token');
                 localStorage.removeItem(OAUTH_STORAGE_KEY);
-                window.location.reload();
                 return;
             }
 
@@ -221,9 +221,7 @@
             };
             xhr.onerror = function() {
                 localStorage.removeItem(OAUTH_STORAGE_KEY);
-                console.warn('[Diversity OAuth] Proxy request failed, storing code directly');
-                localStorage.setItem(TOKEN_KEYS[system], code);
-                try { document.dispatchEvent(new CustomEvent('page:loaded')); } catch(e) {}
+                console.warn('[Diversity OAuth] Proxy request failed, please check proxy configuration');
             };
             xhr.send(JSON.stringify({
                 code: code,
@@ -322,7 +320,7 @@
             if (parsed.error || !parsed.code) { localStorage.removeItem('diversity_oauth_pending'); return; }
             var system = parsed.system || 'gitalk';
             // 从 <diversity-config> 读取 proxy/client_id/client_secret
-            var el = document.querySelector('script.diversity-config[data-system="' + system + '"]');
+            var el = document.querySelector('script.diversity-config[data-name="' + system + '"]');
             if (!el) return;
             var cfg;
             try { cfg = JSON.parse(el.textContent); } catch(e) { return; }
@@ -1314,9 +1312,19 @@
 
         _ready = false;
 
-        // 构建 iframe URL（配置由 postMessage 传递，无需 query params）
+        // 记录父页面信息（OAuth 回调通过 iframe URL 的 parent 参数找回父页面）
+        var parentUrl = global.location.href;
+        var parentPathname = global.location.pathname;
+        var parentTitle = global.document.title;
+        var parentOgTitle = '';
+        try {
+            var ogMeta = global.document.querySelector('meta[property="og:title"]');
+            if (ogMeta) parentOgTitle = ogMeta.getAttribute('content') || '';
+        } catch (e) {}
+
+        // 构建 iframe URL（parent 参数用于 OAuth 回调找回父页面，配置仍通过 postMessage 传递）
         var serverUrl = (_config.server || global.location.origin).replace(/\/+$/, '');
-        var iframeUrl = serverUrl + '/comments/';
+        var iframeUrl = serverUrl + '/comments/?parent=' + encodeURIComponent(parentUrl);
 
         // 创建 iframe 元素
         _iframe = document.createElement('iframe');
@@ -1333,16 +1341,6 @@
         // 清空容器并挂载 iframe
         _container.innerHTML = '';
         _container.appendChild(_iframe);
-
-        // 记录父页面信息
-        var parentUrl = global.location.href;
-        var parentPathname = global.location.pathname;
-        var parentTitle = global.document.title;
-        var parentOgTitle = '';
-        try {
-            var ogMeta = global.document.querySelector('meta[property="og:title"]');
-            if (ogMeta) parentOgTitle = ogMeta.getAttribute('content') || '';
-        } catch (e) {}
 
         // 监听 iframe 加载完成
         _iframe.addEventListener('load', function() {
