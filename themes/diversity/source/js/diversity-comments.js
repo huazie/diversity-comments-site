@@ -48,11 +48,22 @@
                 localStorage.setItem('utterances-session', utterancesSession);
             }
 
-            // 重定向回父页面
+            // iframe 内：session 已写入 localStorage，交给各 client.js 处理，不再跳转
+            if (isInIframe) return;
+
+            // 顶层页面（OAuth 回调落地页）：跳回父页面
             // 优先取 URL 上的 parent 参数（由 iframe URL 携带，避免多租户/多标签页共享 localStorage 冲突）
             // 兜底取 localStorage（旧版兼容）
             var parentUrl = params.get('parent') || localStorage.getItem('diversity:parentUrl');
             if (parentUrl) {
+                // 跨域分区存储下，第三方 iframe 读不到 localStorage 里的 session，
+                // 故把 session 通过 hash 回传给父页面，再由父页面注入 iframe URL
+                var sessionParams = [];
+                if (utterancesSession) sessionParams.push('utterances=' + encodeURIComponent(utterancesSession));
+                if (giscusSession) sessionParams.push('giscus=' + encodeURIComponent(giscusSession));
+                if (sessionParams.length) {
+                    parentUrl += (parentUrl.indexOf('#') === -1 ? '#' : '&') + sessionParams.join('&');
+                }
                 global.location.href = parentUrl;
             }
         } catch (e) {}
@@ -258,14 +269,19 @@
             var data = event.data;
             if (!data.type) return;
 
-            // hint 消息（callback.html 写入 localStorage 后发来的提醒）
-            // 从 localStorage 读取完整数据，忽略 postMessage 中的 code
+            // hint 消息（callback.html 通过 window.opener 发送）
+            // 优先用 postMessage 里的 code（跨域分区存储下 localStorage 不可用），兜底读 localStorage
             if (data.type === 'diversity:gitalk:oauth:hint' || data.type === 'diversity:gitment:oauth:hint') {
+                var sys = data.type.indexOf('gitalk') !== -1 ? 'gitalk' : 'gitment';
+                if (data.code || data.token) {
+                    handleOAuthResult(sys, data);
+                    return;
+                }
                 var stored = localStorage.getItem(OAUTH_STORAGE_KEY);
                 if (stored) {
                     try {
                         var parsed = JSON.parse(stored);
-                        handleOAuthResult(parsed.system || 'gitalk', parsed);
+                        handleOAuthResult(parsed.system || sys, parsed);
                     } catch (e) {}
                 }
                 return;
@@ -1301,6 +1317,33 @@
     };
 
     /**
+     * 从父页面 URL hash 中读取 OAuth 回传的 session（utterances / giscus）
+     * 跨域分区存储下，第三方 iframe 读不到 localStorage 里的 session，故改由 URL 传递
+     * @returns {Object|null} { utterances: string, giscus: string } 或 null
+     */
+    function _readOAuthSession() {
+        try {
+            var hash = global.location.hash || '';
+            if (hash.indexOf('utterances=') === -1 && hash.indexOf('giscus=') === -1) return null;
+            var query = hash.replace(/^#/, '');
+            var params = new URLSearchParams(query);
+            var result = {};
+            var u = params.get('utterances');
+            var g = params.get('giscus');
+            if (u) result.utterances = u;
+            if (g) result.giscus = g;
+            if (!result.utterances && !result.giscus) return null;
+            // 清理 hash，避免刷新时重复处理
+            try {
+                history.replaceState(null, '', global.location.pathname + global.location.search);
+            } catch (e) {}
+            return result;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    /**
      * 创建 iframe 并加载 /comments/ 页面
      */
     function _createIframe() {
@@ -1311,6 +1354,9 @@
         }
 
         _ready = false;
+
+        // 先读取并清理 OAuth 回传的 session（避免其进入 parent 参数）
+        var oauthSession = _readOAuthSession();
 
         // 记录父页面信息（OAuth 回调通过 iframe URL 的 parent 参数找回父页面）
         var parentUrl = global.location.href;
@@ -1325,6 +1371,12 @@
         // 构建 iframe URL（parent 参数用于 OAuth 回调找回父页面，配置仍通过 postMessage 传递）
         var serverUrl = (_config.server || global.location.origin).replace(/\/+$/, '');
         var iframeUrl = serverUrl + '/comments/?parent=' + encodeURIComponent(parentUrl);
+
+        // 注入 OAuth 回传的 session（跨域分区存储下改走 URL 传递）
+        if (oauthSession) {
+            if (oauthSession.utterances) iframeUrl += '&utterances=' + encodeURIComponent(oauthSession.utterances);
+            if (oauthSession.giscus) iframeUrl += '&giscus=' + encodeURIComponent(oauthSession.giscus);
+        }
 
         // 创建 iframe 元素
         _iframe = document.createElement('iframe');
