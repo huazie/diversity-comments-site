@@ -1060,8 +1060,10 @@
                 }
             }
 
-            // 全部禁用：隐藏两种 nav + 占位提示
+            // 全部禁用：隐藏两种 nav + 内容区 + 占位提示
             var placeholder = document.getElementById('diversity-empty-hint');
+            var tabContent = document.querySelector('.comments-tab-content');
+            var dropdownContent = document.querySelector('.comments-dropdown-content');
             if (hiddenCount === systems.length) {
                 if (!placeholder) {
                     placeholder = document.createElement('div');
@@ -1077,8 +1079,14 @@
                 var d = document.querySelector('.comments-dropdown');
                 if (t) t.style.display = 'none';
                 if (d) d.style.display = 'none';
+                // 隐藏评论内容区（comments-tab 类属性所在的内容）
+                if (tabContent) tabContent.style.display = 'none';
+                if (dropdownContent) dropdownContent.style.display = 'none';
             } else {
                 if (placeholder) placeholder.style.display = 'none';
+                // 有启用项时恢复评论内容区显示
+                if (tabContent) tabContent.style.display = '';
+                if (dropdownContent) dropdownContent.style.display = '';
             }
         }
 
