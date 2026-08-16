@@ -536,7 +536,7 @@
             // 同步页面主题
             var isDark = (scheme === 'dark');
             document.body.classList.toggle('theme-dark', isDark);
-            localStorage.setItem('demo_theme', scheme);
+            localStorage.setItem('color_scheme', scheme);
             updateThemeToggle(scheme);
             var label = scheme === 'dark' ? '深色' : scheme === 'light' ? '浅色' : '跟随系统';
             logStatus('ready', '明暗模式 → ' + label);
@@ -618,7 +618,7 @@
 
         // ---- 主题初始化（必须在 init 之前）----
         (function() {
-            var saved = localStorage.getItem('demo_theme');
+            var saved = localStorage.getItem('color_scheme');
             var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             var theme = saved || (prefersDark ? 'dark' : 'light');
             if (theme === 'dark') {
@@ -709,7 +709,7 @@
         function toggleTheme() {
             var isDark = document.body.classList.toggle('theme-dark');
             var scheme = isDark ? 'dark' : 'light';
-            localStorage.setItem('demo_theme', scheme);
+            localStorage.setItem('color_scheme', scheme);
             updateThemeToggle(scheme);
             syncSchemeButtons(scheme);
             // 同步评论主题
