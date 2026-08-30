@@ -5,9 +5,9 @@ comments:
   # 评论页面布局模板名
   layout: comments-all
   # 多个评论系统启用时，选择一个默认展示风格
-  # 可选值：tabs 【仅选项卡】 | dropdown 【仅下拉菜单】
-  # Available values: tabs | dropdown 
-  style: tabs
+  # 可选值：tabs 【仅选项卡】 | dropdown 【仅下拉菜单】 | both 【同时支持，右上角切换】
+  # Available values: tabs | dropdown  | both
+  style: both
 
   # 选择一个默认显示的评论系统
   # 可选值：utterances | gitalk | giscus | twikoo | gitment | waline

@@ -325,6 +325,7 @@
     // Iframe 侧：标记是否已收到父页面的配置
     var _parentConfigReceived = false;
     var _activeComment = null; // 跟踪当前激活的评论系统
+    var _lastSingleMode = null; // 记录上次切到的单模式（tabs/dropdown），null 表示尚未切过单模式
 
     // 处理 iframe 刷新后遗留的 pending OAuth code（token 交换在 iframe 侧，安全）
     function processPendingOAuth() {
@@ -750,22 +751,46 @@
         }
 
         /**
-         * 根据主题样式切换显示模式（tabs / dropdown）
+         * 根据主题样式切换显示模式（tabs / dropdown / both）
          */
         function switchDisplayMode(style) {
             var tabbable = document.querySelector('.comments-tabbable');
             var dropdown = document.querySelector('.comments-dropdown');
+            var modeToggle = document.querySelector('.comments-mode-toggle');
 
             if (style === 'dropdown') {
+                // dropdown：只显示 dropdown 头，隐藏右上角 tabs/dropdown 切换按钮
                 if (tabbable) tabbable.style.display = 'none';
                 if (dropdown) dropdown.style.display = '';
+                if (modeToggle) modeToggle.style.display = 'none';
+                _lastSingleMode = 'dropdown';
+            } else if (style === 'both') {
+                // both：显示右上角 tabs/dropdown 切换按钮；若刚切过单模式则同步其激活态到当前头
+                if (modeToggle) modeToggle.style.display = '';
+                if (_lastSingleMode) syncModeToggle(_lastSingleMode);
             } else {
+                // tabs（默认）：只显示 tabs 头，隐藏右上角 tabs/dropdown 切换按钮
                 if (tabbable) tabbable.style.display = '';
                 if (dropdown) dropdown.style.display = 'none';
+                if (modeToggle) modeToggle.style.display = 'none';
+                _lastSingleMode = 'tabs';
             }
             // 切换模式后重新激活当前评论系统，确保新 nav 的选中状态正确
             if (_activeComment) {
                 activateCommentTab(_activeComment);
+            }
+        }
+
+        /**
+         * 同步右上角 tabs/dropdown 切换按钮的激活态到指定模式
+         * 通过触发 mode-toggle 的点击处理，使头显隐、按钮激活态、内部 currentMode、localStorage 记忆保持一致
+         */
+        function syncModeToggle(mode) {
+            var modeToggle = document.querySelector('.comments-mode-toggle');
+            if (!modeToggle) return;
+            var targetBtn = modeToggle.querySelector('[data-mode="' + mode + '"]');
+            if (targetBtn) {
+                targetBtn.click();
             }
         }
 
