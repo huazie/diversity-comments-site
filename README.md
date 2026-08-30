@@ -12,7 +12,7 @@
 |------|------|
 | **六大评论系统** | Utterances / Gitalk / Giscus / Twikoo / Gitment / Waline 一站集成 |
 | **iframe 沙箱隔离** | 评论区运行在独立 iframe 中，不影响宿主页面样式和脚本 |
-| **实时切换** | API 一行代码切换评论系统，支持 Tab 和 Dropdown 两种导航模式 |
+| **实时切换** | API 一行代码切换评论系统，支持 Tab、Dropdown 以及两者共存（Both）三种导航模式 |
 | **明暗模式** | 支持 `light` / `dark` / `auto` 三种模式，自动跟随系统或手动切换 |
 | **懒加载 & 记忆** | 进入视口才加载评论，localStorage 记住用户上次选择的评论系统 |
 | **自动高度** | MutationObserver + 定时器双保险，iframe 高度实时同步到父页面 |
@@ -32,7 +32,7 @@
 **Step 2 — 引入 SDK**
 
 ```html
-<script src="https://huazie.github.io/js/diversity-comments.js"></script>
+<script src="https://huazie.github.io/js/diversity-comments.1.0.0.min.js"></script>
 ```
 
 **Step 3 — 初始化**
@@ -123,7 +123,7 @@ diversity-comments-site/
 | 参数 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
 | `pageId` | string | `location.pathname` | 页面唯一标识 |
-| `style` | string | `'tabs'` | 显示模式：`tabs` / `dropdown` |
+| `style` | string | `'tabs'` | 显示模式：`tabs` / `dropdown` / `both`（两者共存，右上角可切换 Tab 与 Dropdown） |
 | `active` | string | `'utterances'` | 默认激活的评论系统 |
 | `lazyload` | boolean | `true` | 进入视口才加载评论 |
 | `storage` | boolean | `true` | 记住用户选择的评论系统 |
@@ -143,7 +143,7 @@ diversity-comments-site/
 | 方法 | 说明 |
 |------|------|
 | `switchTo(name)` | 切换到指定评论系统 |
-| `switchDisplayMode(style)` | 切换显示模式（`'tabs'` / `'dropdown'`） |
+| `switchDisplayMode(style)` | 切换显示模式（`'tabs'` / `'dropdown'` / `'both'`） |
 | `setColorScheme(scheme)` | 切换明暗模式 |
 | `refresh()` | 刷新当前评论 |
 | `getConfig()` | 获取当前配置（深拷贝） |

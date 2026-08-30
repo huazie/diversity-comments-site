@@ -12,7 +12,7 @@ One API to integrate six comment systems, with iframe sandbox isolation — read
 |---------|-------------|
 | **Six Comment Systems** | Utterances / Gitalk / Giscus / Twikoo / Gitment / Waline in one place |
 | **iframe Sandbox** | Comments run in an isolated iframe — no style or script conflicts with your page |
-| **Real-time Switching** | Switch comment systems with one API call. Supports Tab and Dropdown navigation |
+| **Real-time Switching** | Switch comment systems with one API call. Supports Tab, Dropdown, and Both (combined) navigation |
 | **Dark / Light Mode** | `light` / `dark` / `auto` — auto-detect system preference or switch manually |
 | **Lazy Load & Memory** | Loads only when in viewport; localStorage remembers user's last choice |
 | **Auto Height** | MutationObserver + timer dual protection; iframe height syncs to parent automatically |
@@ -32,7 +32,7 @@ One API to integrate six comment systems, with iframe sandbox isolation — read
 **Step 2 — Load the SDK**
 
 ```html
-<script src="https://huazie.github.io/js/diversity-comments.js"></script>
+<script src="https://huazie.github.io/js/diversity-comments.1.0.0.min.js"></script>
 ```
 
 **Step 3 — Initialize**
@@ -124,7 +124,7 @@ diversity-comments-site/
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `pageId` | string | `location.pathname` | Unique page identifier |
-| `style` | string | `'tabs'` | Navigation style: `tabs` / `dropdown` |
+| `style` | string | `'tabs'` | Navigation style: `tabs` / `dropdown` / `both` (combined; toggle Tab/Dropdown via the top-right button) |
 | `active` | string | `'utterances'` | Default active comment system |
 | `lazyload` | boolean | `true` | Load only when in viewport |
 | `storage` | boolean | `true` | Remember user's last choice |
@@ -144,7 +144,7 @@ diversity-comments-site/
 | Method | Description |
 |--------|-------------|
 | `switchTo(name)` | Switch to a specific comment system |
-| `switchDisplayMode(style)` | Switch display mode (`'tabs'` / `'dropdown'`) |
+| `switchDisplayMode(style)` | Switch display mode (`'tabs'` / `'dropdown'` / `'both'`) |
 | `setColorScheme(scheme)` | Switch light/dark mode |
 | `refresh()` | Refresh current comments |
 | `getConfig()` | Get current config (deep clone) |
