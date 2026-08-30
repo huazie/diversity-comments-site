@@ -16,6 +16,9 @@
     --pre-bg: #1e1e2e;
     --status-bg: #f7f8fc;
     --article-h2: #1a202c;
+    --icon-sun-color: #f6a821;
+    --icon-moon-color: #818cf8;
+    --icon-auto-color: #64748b;
 }
 
 /* ---- 暗色模式 ---- */
@@ -281,6 +284,20 @@ body {
 .btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
 .btn-danger { border-color: #fc8181; color: #e53e3e; }
 .btn-danger:hover { background: #e53e3e; color: #fff; }
+
+/* 图标配色：太阳（浅色）/ 月亮（深色）/ 显示器（跟随系统） */
+.icon-sun { color: var(--icon-sun-color); }
+.icon-moon { color: var(--icon-moon-color); }
+.icon-auto { color: var(--icon-auto-color); }
+.btn.active .icon-sun,
+.btn.active .icon-moon,
+.btn.active .icon-auto { color: #fff; }
+
+/* SVG 图标尺寸对齐（替代写死的 emoji，规避部分浏览器灰显） */
+.sidebar-nav a .nav-icon svg { width: 18px; height: 18px; }
+.feature-card .icon svg { width: 22px; height: 22px; }
+.btn svg { flex-shrink: 0; }
+.menu-toggle svg { width: 22px; height: 22px; }
 
 /* ---- 状态日志（终端风格）---- */
 .status-log {
