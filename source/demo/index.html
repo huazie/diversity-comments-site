@@ -158,7 +158,7 @@
                         <div class="feature-card">
                             <div class="icon" style="background:#fef3c7;color:#d97706;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></div>
                             <h3>实时切换</h3>
-                            <p>API 一行代码切换评论系统，支持 Tab 和 Dropdown 两种导航</p>
+                            <p>API 一行代码切换评论系统，支持 Tab、Dropdown 以及两者共存（Both）三种导航模式</p>
                         </div>
                         <div class="feature-card">
                             <div class="icon" style="background:#d1fae5;color:#059669;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none"/></svg></div>
@@ -204,7 +204,7 @@
                     <table class="field-table">
                         <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
                         <tr><td><code>pageId</code></td><td>string</td><td class="default">空（按各插件模式取父页面值）</td><td>页面唯一标识。传入则所有评论系统统一使用此值；未传则各插件按 issue_term/mapping/path 模式从父页面取 pathname/url/title</td></tr>
-                        <tr><td><code>style</code></td><td>string</td><td class="default">'tabs'</td><td>显示模式：<code>tabs</code> 选项卡 / <code>dropdown</code> 下拉菜单</td></tr>
+                        <tr><td><code>style</code></td><td>string</td><td class="default">'tabs'</td><td>显示模式：<code>tabs</code> 选项卡 / <code>dropdown</code> 下拉菜单 / <code>both</code> 两者共存</td></tr>
                         <tr><td><code>active</code></td><td>string</td><td class="default">'utterances'</td><td>默认激活的评论系统</td></tr>
                         <tr><td><code>lazyload</code></td><td>boolean</td><td class="default">true</td><td>进入视口才加载评论</td></tr>
                         <tr><td><code>storage</code></td><td>boolean</td><td class="default">true</td><td>记住用户选择的评论系统</td></tr>
