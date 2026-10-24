@@ -262,4 +262,4 @@ waline: {
 
 ## 许可证
 
-[MIT](LICENSE) © [huazie](https://github.com/huazie)
+本项目基于 MIT 许可证开源，版权归 [huazie](https://github.com/huazie) 所有 - 查看 [LICENSE](LICENSE) 文件了解更多细节

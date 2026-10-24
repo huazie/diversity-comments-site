@@ -263,4 +263,4 @@ waline: {
 
 ## License
 
-[MIT](LICENSE) © [huazie](https://github.com/huazie)
+This project is open source under the MIT License, Copyright © [huazie](https://github.com/huazie) - see the [LICENSE](LICENSE) file for details.
